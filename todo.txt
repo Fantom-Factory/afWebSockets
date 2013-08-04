@@ -1,0 +1,41 @@
+
+General webSockets server
+ - maybe a WebMod ?
+ - Then a BedSheet Route
+ - Then a Draft Route
+ 
+ 
+To consider - what if Wisp closes and there're web sockets open still?
+
+ Need a WebSocksets client, with a JS native - a diff pod perhaps?
+ 
+ Server Side requirements
+ http://tools.ietf.org/html/rfc6455#section-4.2
+ sec 4.2.2.
+ 
+ 
+ send and receive should be on a diff actor to the Actor that consumes the msgs
+  - when server sends data to the client, need a way to quickly serialise the Buf contents across Actor boundraries
+
+v1.0 - NO EXTENSIONS!
+ 
+Check if GZIP just works!??
+
+register ws: and wss:schemas - for WebSocketClients  
+
+Firefox handshake req headers
+  Connection: keep-alive, Upgrade
+  Host: localhost:8070
+  Accept-Language: en-gb,en-us;q=0.7,en;q=0.3
+  Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+  Origin: http://localhost:8069
+  User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:22.0) Gecko/20100101 Firefox/22.0
+  DNT: 1
+  Pragma: no-cache
+  Upgrade: websocket
+  Cache-Control: no-cache
+  Sec-WebSocket-Key: L3vSWlgMnhQWv2FldG/QTQ==
+  Accept-Encoding: gzip, deflate
+  Sec-WebSocket-Version: 13
+  
+  
