@@ -3,14 +3,7 @@ using web::WebUtil
 internal class WebSocketCore {
 	private const static Log log := Utils.getLog(WebSocketCore#)
 	private static const Version httpVer11	:= Version("1.1")
-//	private WsReq req
-//	private WsRes res
-//	
-//	new make(WsReq req, WsRes res) {
-//		this.req = req
-//		this.res = res
-//	}
-	
+
 	Bool handshake(WsReq req, WsRes res, Str? allowedOrigins := null) {
 		if (req.httpVersion < httpVer11)
 			throw WebSocketErr(WsMsgs.handshakeWrongHttpVersion(req.httpVersion))

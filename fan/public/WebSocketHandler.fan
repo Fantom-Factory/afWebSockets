@@ -18,11 +18,12 @@ class WebSocketHandler {
 			if (!ok) return false
 			
 		} catch (WebSocketErr wsErr) {
+			res.setStatusCode(400)
 			return false
 		}
 		
-		httpResponse.disableGzip
-		httpResponse.disableBuffering
+		httpResponse.disableGzip = true
+		httpResponse.disableBuffering = true
 		
 		// flush the headers out to the client
 		resOut 	:= res.out.flush
