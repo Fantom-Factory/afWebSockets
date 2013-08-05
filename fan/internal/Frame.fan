@@ -17,7 +17,8 @@ class Frame {
 		this.fin		= true
 	}
 
-	InStream in() {
+	** Writes this frame to the given OutStream
+	Void writeTo(OutStream out) {
 		buf		:= Buf(payload.size + 14)	// 14 is the max no of extra frame bytes
 		
 		byte	:= type.opCode
@@ -33,9 +34,9 @@ class Frame {
 		
 		buf.writeBuf(payload)
 		
-		
-		
-		return buf.flip.in
+
+		// write it out!
+		buf.flip.in.pipe(out)
 	}
 	
 	

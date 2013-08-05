@@ -63,7 +63,15 @@ const class WebSocketHandler {
 		
 		webSocket.onOpen.each |f| { f.call() }
 		
+
+		// the meat of the WebSocket connection
+		process(webSocket, reqIn)
 		
+		return true
+	}
+
+	
+	Void process(WebSocket webSocket, InStream reqIn) {
 		
 		while (webSocket.readyState <= ReadyState.closing) {
 			
@@ -81,18 +89,11 @@ const class WebSocketHandler {
 		}
 		
 		Env.cur.err.printLine("WS go bye bye now!")
-//		webSocket.onClose.each |f| { f.call() }
+//		webSocket.onClose.each |f| { f.call() }	
 		
-		return true
 	}
-
+	
 }
 
-
-enum class CloseFrameStatusCode {
-	// see http://tools.ietf.org/html/rfc6455#section-7.4
-	// http://www.iana.org/assignments/websocket/websocket.xml
-	close
-}
 
 
