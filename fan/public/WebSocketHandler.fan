@@ -1,14 +1,33 @@
 using afIoc
 using afBedSheet
 
-class WebSocketHandler {
+const class WebSocketHandler {
 	
-	@Inject private HttpRequest 	httpRequest
-	@Inject private HttpResponse	httpResponse
+	private const Uri:Method handlers
 	
-	new make(|This|in) { in(this) }
+	@Inject private const HttpRequest 			httpRequest
+	@Inject private const HttpResponse			httpResponse
+	@Inject private const ReqestHandlerInvoker	handlerInvoker
 	
-	Obj service(Uri wotever) {
+	// TODO: unit test
+	internal new make(Uri:Method handlers, |This|? in := null) {
+		in?.call(this)
+		
+		handlers.each |method, uri| {
+			if (!ReflectUtils.paramTypesFitMethodSignature([WebSocket#], method))
+				throw WebSocketErr(WsMsgs.wsHandlerMethodWrongParams(method, [WebSocket#]))
+			if (!uri.isPathOnly)
+				throw WebSocketErr(WsMsgs.wsHandlerUriNotPathOnly(uri))
+			if (!uri.isPathAbs)
+				throw WebSocketErr(WsMsgs.wsHandlerUriMustStartWithSlash(uri))
+			if (!uri.isDir)
+				throw WebSocketErr(WsMsgs.wsHandlerUriMustEndWithSlash(uri))
+		}
+
+		this.handlers = handlers.toImmutable		
+	}
+
+	Obj service(Uri remainingUri := ``) {
 		
 		req	:= WsReqBsImpl(httpRequest)
 		res	:= WsResBsImpl(httpResponse)
@@ -22,19 +41,47 @@ class WebSocketHandler {
 			return false
 		}
 		
+
 		httpResponse.disableGzip = true
 		httpResponse.disableBuffering = true
 		
 		// flush the headers out to the client
 		resOut 	:= res.out.flush
 		reqIn 	:= req.in
+
 		
-		frame	:= Frame.readFrom(reqIn)
+		webSocket := WebSocketServerImpl(httpRequest.uri, "", res)
 		
-		Env.cur.err.printLine(frame.payload.readAllStr)
+		// use pathStr to knockout any unwanted query str
+		matchedUri := httpRequest.modRel.pathStr[0..<-remainingUri.pathStr.size].toUri
+		// We pass 'false' to prevent Errs being thrown if the uri is a dir but doesn't end in '/'.
+		// The 'false' appends a '/' automatically - it's nicer web behaviour
+	    method := handlers[matchedUri]
 		
-		Frame("Whoop Whoop!").in.pipe(resOut)
-		resOut.flush
+		wsHandler := RouteHandler(method, [webSocket])
+		handlerInvoker.invokeHandler(wsHandler)
+		
+		webSocket.onOpen.each |f| { f.call() }
+		
+		
+		
+		while (webSocket.readyState <= ReadyState.closing) {
+			
+			// die with 1002 if 
+			frame 	:= Frame.readFrom(reqIn)
+			
+			// if not text frame - die with 1003
+			
+			// if not UTF-8 text - die with a 1007
+			message	:= frame.payload.readAllStr
+			
+			msgEvt	:= MsgEvent() { it.msg = message }
+			Env.cur.err.printLine("GOT MESSAGE: $message")
+			webSocket.onMessage.each |f| { f.call(msgEvt) }
+		}
+		
+		Env.cur.err.printLine("WS go bye bye now!")
+//		webSocket.onClose.each |f| { f.call() }
 		
 		return true
 	}

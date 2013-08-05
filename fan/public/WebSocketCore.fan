@@ -47,7 +47,7 @@ internal class WebSocketCore {
 				return false
 			}
 		}
-		
+
 		reqKey := req.headers["Sec-WebSocket-Key"] + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 		resKey := Buf().print(reqKey).toDigest("SHA-1").toBase64
 		
