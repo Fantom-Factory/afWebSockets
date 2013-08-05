@@ -30,7 +30,7 @@ internal class WebSocketServerImpl : WebSocket {
 		
 		// TODO: check con state
 		// TODO: add/set buffered amount
-		Frame("Whoop Whoop!").in.pipe(res.out)
+		Frame("Whoop Whoop!").writeTo(res.out)
 		res.out.flush
 		
 	}
