@@ -49,4 +49,19 @@ internal mixin WsMsgs {
 		"Request does not contain a 'Sec-WebSocket-Key' header - $headers"
 	}
 
+	static Str wsHandlerMethodWrongParams(Method method, Type[] types) {
+		"Handler method $method.signature does not fit types " + types.join(",")
+	}
+
+	static Str wsHandlerUriNotPathOnly(Uri uri) {
+		"Uri '${uri}' must only contain a path. e.g. `/foo/bar/`"
+	}
+
+	static Str wsHandlerUriMustStartWithSlash(Uri uri) {
+		"Uri '${uri}' must start with a path. e.g. `/foo/bar/`"
+	}
+
+	static Str wsHandlerUriMustEndWithSlash(Uri uri) {
+		"Uri '${uri}' must end with a path. e.g. `/foo/bar/`"
+	}	
 }
