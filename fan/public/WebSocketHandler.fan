@@ -1,16 +1,21 @@
 using afIoc
 using afBedSheet
 
+// The afBedSheet class
 const class WebSocketHandler {
 	
-	private const Uri:Method handlers
+			private const Uri:Method 			handlers
 	
 	@Inject private const HttpRequest 			httpRequest
 	@Inject private const HttpResponse			httpResponse
 	@Inject private const ReqestHandlerInvoker	handlerInvoker
+
+			private const WebSocketCore			webSocketCore
 	
 	internal new make(Uri:Method handlers, |This|? in := null) {
 		in?.call(this)
+		
+		// TODO register with reg shutdown and close all active ws conns with 1001 (going away)
 		
 		handlers.each |method, uri| {
 			if (!ReflectUtils.paramTypesFitMethodSignature([WebSocket#], method))
@@ -23,7 +28,8 @@ const class WebSocketHandler {
 				throw WebSocketErr(WsErrMsgs.wsHandlerUriMustEndWithSlash(uri))
 		}
 
-		this.handlers = handlers.toImmutable		
+		this.handlers 		= handlers.toImmutable
+		this.webSocketCore	= WebSocketCore()
 	}
 
 	Obj service(Uri remainingUri := ``) {
@@ -32,7 +38,7 @@ const class WebSocketHandler {
 		res	:= WsResBsImpl(httpResponse)
 		
 		try {
-			ok 	:= WebSocketCore().handshake(req, res)
+			ok 	:= webSocketCore.handshake(req, res)
 			if (!ok) return false
 			
 		} catch (WebSocketErr wsErr) {
@@ -58,38 +64,12 @@ const class WebSocketHandler {
 	    method := handlers[matchedUri]
 		
 		wsHandler := RouteHandler(method, [webSocket])
-		handlerInvoker.invokeHandler(wsHandler)
-		
-		webSocket.onOpen.each |f| { f.call() }
-		
+		handlerInvoker.invokeHandler(wsHandler)		
 
 		// the meat of the WebSocket connection
-		process(webSocket, reqIn)
+		webSocketCore.process(webSocket, reqIn, resOut)
 		
 		return true
-	}
-
-	
-	Void process(WebSocket webSocket, InStream reqIn) {
-		
-		while (webSocket.readyState <= ReadyState.closing) {
-			
-			// die with 1002 if 
-			frame 	:= Frame.readFrom(reqIn)
-			
-			// if not text frame - die with 1003
-			
-			// if not UTF-8 text - die with a 1007
-			message	:= frame.payload.readAllStr
-			
-			msgEvt	:= MsgEvent() { it.msg = message }
-			Env.cur.err.printLine("GOT MESSAGE: $message")
-			webSocket.onMessage.each |f| { f.call(msgEvt) }
-		}
-		
-		Env.cur.err.printLine("WS go bye bye now!")
-//		webSocket.onClose.each |f| { f.call() }	
-		
 	}
 	
 }

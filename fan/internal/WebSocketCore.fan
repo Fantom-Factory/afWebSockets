@@ -1,6 +1,6 @@
 using web::WebUtil
 
-internal class WebSocketCore {
+internal const class WebSocketCore {
 	private const static Log log := Utils.getLog(WebSocketCore#)
 	private static const Version httpVer11	:= Version("1.1")
 
@@ -59,4 +59,66 @@ internal class WebSocketCore {
 		return true
 	}
 	
+	internal Void process(WebSocketServerImpl webSocket, InStream reqIn, OutStream resOut) {
+
+		Int? closeCode
+		Str? closeReason
+
+		webSocket.onOpen.each |f| { f.call() }
+		
+		while (webSocket.readyState <= ReadyState.closing) {
+			
+			// TODO: move close info into Frame - and have it raise a CloseErr
+			frame 	:= Frame.readFrom(reqIn)
+			
+			// sec5.1 - The server MUST close the connection upon receiving a frame that is not 
+			// masked. In this case, a server MAY send a Close frame with a status code of 1002 
+			// (protocol error)
+			if (!frame.maskFrame) {
+				webSocket.readyState = ReadyState.closing
+				closeCode 	= CloseFrameStatusCodes.protocolError
+				closeReason	= "Frame not masked"
+				Frame.makeCloseFrame(closeCode, closeReason).writeTo(resOut)
+				continue
+			}
+			
+			if (frame.type == FrameType.close) {
+				webSocket.readyState = ReadyState.closing
+				closeCode 	= (frame.payload.remaining >= 2) ? frame.payload.readU2 : CloseFrameStatusCodes.noStatusRcvd
+				try {
+					closeReason	= (frame.payload.remaining >  0) ? frame.payload.readAllStr : null
+				} catch (IOErr ioe) {
+					closeCode 	= CloseFrameStatusCodes.invalidFramePayloadData
+					closeReason	= "Close frame contained invalid UTF data"
+				}
+				Frame.makeCloseFrame(closeCode, closeReason).writeTo(resOut)
+				continue
+			}
+			
+			if (frame.type == FrameType.text) {
+				// if not UTF-8 text - die with a 1007
+				message	:= frame.payload.readAllStr
+
+				msgEvt	:= MsgEvent() { it.msg = message }
+				Env.cur.err.printLine("GOT MESSAGE: $message")
+				webSocket.onMessage.each |f| { f.call(msgEvt) }
+				continue
+			}
+
+			// if frame unknown - fail connection with 1003
+			webSocket.readyState = ReadyState.closing
+			closeCode 	= CloseFrameStatusCodes.unsupportedData
+			closeReason	= CloseFrameStatusCodes#unsupportedData.name.toDisplayName
+			Frame.makeCloseFrame(closeCode, closeReason).writeTo(resOut)
+
+		}
+		
+		// die with a 1006 if connection is closed on us.
+		
+		Env.cur.err.printLine("WS go bye bye now!")
+		webSocket.readyState = ReadyState.closed
+		closeEvent := CloseEvent() { it.wasClean = true; it.code = closeCode; it.reason = closeReason }
+		webSocket.onClose.each |f| { f.call(closeEvent) }
+		
+	}
 }
