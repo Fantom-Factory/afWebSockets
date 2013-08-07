@@ -2,25 +2,25 @@
 internal class TestWebSocketHandlerCtor : WsTest {
 
 	Void testMethodHasCorrectParams() {
-		verifyWsErrMsg(WsMsgs.wsHandlerMethodWrongParams(#invalid, [WebSocket#])) {
+		verifyWsErrMsg(WsErrMsgs.wsHandlerMethodWrongParams(#invalid, [WebSocket#])) {
 			fh := WebSocketHandler( [`/wotever/`:#invalid] )
 		}
 	}
 
 	Void testUriPathOnly() {
-		verifyWsErrMsg(WsMsgs.wsHandlerUriNotPathOnly(`http://wotever.com`)) {
+		verifyWsErrMsg(WsErrMsgs.wsHandlerUriNotPathOnly(`http://wotever.com`)) {
 			fh := WebSocketHandler( [`http://wotever.com`:#valid] )
 		}
 	}
 
 	Void testUriNotStartWithSlash() {
-		verifyWsErrMsg(WsMsgs.wsHandlerUriMustStartWithSlash(`wotever/`)) {
+		verifyWsErrMsg(WsErrMsgs.wsHandlerUriMustStartWithSlash(`wotever/`)) {
 			fh := WebSocketHandler( [`wotever/`:#valid] )
 		}
 	}
 
 	Void testUriNotEndWithSlash() {
-		verifyWsErrMsg(WsMsgs.wsHandlerUriMustEndWithSlash(`/wotever`)) {
+		verifyWsErrMsg(WsErrMsgs.wsHandlerUriMustEndWithSlash(`/wotever`)) {
 			fh := WebSocketHandler( [`/wotever`:#valid] )
 		}
 	}
