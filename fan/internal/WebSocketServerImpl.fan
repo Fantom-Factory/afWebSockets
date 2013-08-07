@@ -5,6 +5,8 @@ internal class WebSocketServerImpl : WebSocket {
 	
 	override Uri 			url
 	override Str			protocol
+	override ReadyState		readyState	:= ReadyState.connecting
+	
 	override |->|[] 		onOpen		:= [,]
 	override |MsgEvent|[]	onMessage	:= [,]
 //	override |->|[] 		onError		:= [,]
@@ -18,12 +20,8 @@ internal class WebSocketServerImpl : WebSocket {
 		this.res		= res
 	}
 	
-	override ReadyState	readyState() {
-		ReadyState.connecting
-	}
-	
 	override Int bufferedAmount() {
-		0
+		0	// TODO: bufferedAmount
 	}
 	
 	override Void send(Str data) {

@@ -1,5 +1,5 @@
 
-internal class TestWebSocketHandlerCtor : WsTest {
+internal class TestWsHandlerCtor : WsTest {
 
 	Void testMethodHasCorrectParams() {
 		verifyWsErrMsg(WsErrMsgs.wsHandlerMethodWrongParams(#invalid, [WebSocket#])) {

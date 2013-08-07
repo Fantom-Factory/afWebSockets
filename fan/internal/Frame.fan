@@ -1,20 +1,27 @@
 
-class Frame {
+internal class Frame {
 
-	FrameType		type
-	Buf				payload
-
-	private Bool	fin
-	private Bool	maskFrame
+	FrameType	type
+	Buf			payload
+	Bool		fin
+	Bool		maskFrame
 	
 	new make(|This|in) {
 		in(this)
 	}
 	
-	new makeFromText(Str text, Charset charset := Charset.utf8) {
+	new makeFromText(Str text) {
 		this.type		= FrameType.text
-		this.payload	= text.toBuf(charset)
+		this.payload	= text.toBuf(Charset.utf8)
 		this.fin		= true
+		this.maskFrame	= false
+	}
+
+	new makeCloseFrame(Int code, Str reason) {
+		this.type		= FrameType.close
+		this.payload	= Buf().writeI2(code).writeUtf(reason)
+		this.fin		= true
+		this.maskFrame	= false
 	}
 
 	** Writes this frame to the given OutStream
