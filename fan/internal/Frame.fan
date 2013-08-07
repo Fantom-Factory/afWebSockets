@@ -41,7 +41,7 @@ class Frame {
 	
 	
 	static new readFrom(InStream in) {
-		byte	:= in.read	// TODO: does this block?
+		byte	:= in.read
 		
 		fin		:= byte.and(0x80) > 0
 //		rsv1	:= byte.and(0x40) > 0	// TODO: rsv's are used in extensions - MUST fail if no-ext and non-zero
@@ -49,7 +49,7 @@ class Frame {
 //		rsv3	:= byte.and(0x10) > 0
 		opCode	:= byte.and(0x0F)
 		
-		byte	= in.read	// TODO: does this block?
+		byte	= in.read
 		mask	:= byte.and(0x80) > 0
 		length	:= byte.and(0x7F)
 		

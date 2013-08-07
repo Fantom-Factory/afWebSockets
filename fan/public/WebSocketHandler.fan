@@ -9,19 +9,18 @@ const class WebSocketHandler {
 	@Inject private const HttpResponse			httpResponse
 	@Inject private const ReqestHandlerInvoker	handlerInvoker
 	
-	// TODO: unit test
 	internal new make(Uri:Method handlers, |This|? in := null) {
 		in?.call(this)
 		
 		handlers.each |method, uri| {
 			if (!ReflectUtils.paramTypesFitMethodSignature([WebSocket#], method))
-				throw WebSocketErr(WsMsgs.wsHandlerMethodWrongParams(method, [WebSocket#]))
+				throw WebSocketErr(WsErrMsgs.wsHandlerMethodWrongParams(method, [WebSocket#]))
 			if (!uri.isPathOnly)
-				throw WebSocketErr(WsMsgs.wsHandlerUriNotPathOnly(uri))
+				throw WebSocketErr(WsErrMsgs.wsHandlerUriNotPathOnly(uri))
 			if (!uri.isPathAbs)
-				throw WebSocketErr(WsMsgs.wsHandlerUriMustStartWithSlash(uri))
+				throw WebSocketErr(WsErrMsgs.wsHandlerUriMustStartWithSlash(uri))
 			if (!uri.isDir)
-				throw WebSocketErr(WsMsgs.wsHandlerUriMustEndWithSlash(uri))
+				throw WebSocketErr(WsErrMsgs.wsHandlerUriMustEndWithSlash(uri))
 		}
 
 		this.handlers = handlers.toImmutable		
