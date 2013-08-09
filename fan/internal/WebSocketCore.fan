@@ -63,6 +63,7 @@ internal const class WebSocketCore {
 
 		Int? closeCode
 		Str? closeReason
+		Bool closeFrameSent
 
 		webSocket.onOpen.each |f| { f.call() }
 		
@@ -79,6 +80,7 @@ internal const class WebSocketCore {
 				closeCode 	= CloseFrameStatusCodes.protocolError
 				closeReason	= "Frame not masked"
 				Frame.makeCloseFrame(closeCode, closeReason).writeTo(resOut)
+				closeFrameSent = true
 				continue
 			}
 			
@@ -92,6 +94,7 @@ internal const class WebSocketCore {
 					closeReason	= "Close frame contained invalid UTF data"
 				}
 				Frame.makeCloseFrame(closeCode, closeReason).writeTo(resOut)
+				closeFrameSent = true
 				continue
 			}
 			
@@ -110,6 +113,7 @@ internal const class WebSocketCore {
 			closeCode 	= CloseFrameStatusCodes.unsupportedData
 			closeReason	= CloseFrameStatusCodes#unsupportedData.name.toDisplayName
 			Frame.makeCloseFrame(closeCode, closeReason).writeTo(resOut)
+			closeFrameSent = true
 
 		}
 		

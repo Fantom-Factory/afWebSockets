@@ -3,15 +3,15 @@ using afBedSheet
 
 // The afBedSheet class
 const class WebSocketHandler {
-	
+
 			private const Uri:Method 			handlers
-	
+
 	@Inject private const HttpRequest 			httpRequest
 	@Inject private const HttpResponse			httpResponse
 	@Inject private const ReqestHandlerInvoker	handlerInvoker
 
 			private const WebSocketCore			webSocketCore
-	
+
 	internal new make(Uri:Method handlers, |This|? in := null) {
 		in?.call(this)
 		
