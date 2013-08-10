@@ -70,4 +70,6 @@ const class CloseEvent {
 	** The WebSocket connection close reason provided by the server.
 	** Returns 'null' if the connection was not closed cleanly.
 	const Str? reason
+	
+	new make(|This|in) { in(this) }
 }

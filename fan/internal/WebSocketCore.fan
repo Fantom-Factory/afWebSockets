@@ -67,10 +67,16 @@ internal const class WebSocketCore {
 
 		webSocket.onOpen.each |f| { f.call() }
 		
-		while (webSocket.readyState <= ReadyState.closing) {
+		while (webSocket.readyState < ReadyState.closing) {
 			
 			// TODO: move close info into Frame - and have it raise a CloseErr
 			frame 	:= Frame.readFrom(reqIn)
+			
+			// TODO: close proper!
+			if (frame == null) {
+				webSocket.readyState = ReadyState.closing
+				continue
+			}
 			
 			// sec5.1 - The server MUST close the connection upon receiving a frame that is not 
 			// masked. In this case, a server MAY send a Close frame with a status code of 1002 
@@ -121,7 +127,8 @@ internal const class WebSocketCore {
 		
 		Env.cur.err.printLine("WS go bye bye now!")
 		webSocket.readyState = ReadyState.closed
-		closeEvent := CloseEvent() { it.wasClean = true; it.code = closeCode; it.reason = closeReason }
+//		closeEvent := CloseEvent() { it.wasClean = true; it.code = closeCode; it.reason = closeReason }
+		closeEvent := CloseEvent() { it.wasClean = true; it.code = CloseFrameStatusCodes.normalClosure; it.reason = "Normal Closure" }
 		webSocket.onClose.each |f| { f.call(closeEvent) }
 		
 	}
