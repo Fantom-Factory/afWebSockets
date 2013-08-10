@@ -33,14 +33,23 @@ internal class Frame {
 			byte = byte.or(0x80)
 
 		buf.write(byte)
-		
-		// FIXME: or with Mask bit
-		buf.write(payload.size)	// FIXME: to dat 126 / 127 thing!
-		
-		// FIXME: mask data
+
+		// FIXME: to dat 126 / 127 thing!
+		byte	= payload.size
+		if (maskFrame)
+			byte	= byte.or(0x80)
+		buf.write(byte)	
+
+		if (maskFrame) {
+			maskBuf := Buf(4).writeI4(Int.random(0..<2.pow(32)))
+			buf.writeBuf(maskBuf.flip)
+			payload.size.times |i| {
+				j := maskBuf[i.mod(4)]
+				payload[i] = payload[i].xor(j)
+			}
+		}
 		
 		buf.writeBuf(payload)
-		
 
 		// write it out!
 		buf.flip.in.pipe(out)
@@ -49,6 +58,9 @@ internal class Frame {
 	
 	static new readFrom(InStream in) {
 		byte	:= in.read
+		
+		if (byte == null)
+			return null	// EOF
 		
 		fin		:= byte.and(0x80) > 0
 //		rsv1	:= byte.and(0x40) > 0	// TODO: rsv's are used in extensions - MUST fail if no-ext and non-zero
@@ -83,11 +95,13 @@ internal class Frame {
 		return Frame {
 			it.type		= FrameType(opCode)
 			it.payload	= payload
+			it.maskFrame= mask
+			it.fin		= fin
 		}
 	}
 }
 
-enum class FrameType {
+internal enum class FrameType {
 	continuation(0), text(1), binary(2), close(8), ping(9), pong(10);
 	
 	const Int opCode
