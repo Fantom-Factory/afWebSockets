@@ -12,15 +12,15 @@ class AppHandler {
 	new make(WebSocket webSocket) {
 		this.webSocket = webSocket
 		
-		webSocket.onOpen.add(|->| { 
+		webSocket.onOpen = |->| { 
 			Env.cur.err.printLine("ES: onOpen")
-		})
-		webSocket.onClose.add(|->| { 
+		}
+		webSocket.onClose = |->| { 
 			Env.cur.err.printLine("ES: onClose")
-		})
-		webSocket.onMessage.add(|MsgEvent me| { 
+		}
+		webSocket.onMessage = |MsgEvent me| { 
 			Env.cur.err.printLine("ES: onMsg - $me.msg")
-		})
+		}
 	}
 	
 }

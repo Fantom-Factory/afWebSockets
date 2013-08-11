@@ -20,7 +20,10 @@
 ** @see 
 ** - http://tools.ietf.org/html/rfc6455#section-7.4
 ** - http://www.iana.org/assignments/websocket/websocket.xml#close-code-number
-const class CloseFrameStatusCodes {
+** 
+// TODO: turn into const class with msgs - doc that it can't be enum 'cos any code is valid - only keep the ones we actually use - don't forget to impl equals
+// TODO: actually - don't!!!! Keep this internal
+internal const mixin CloseCodes {
 	
 	** Indicates a normal closure, meaning that the purpose for which the connection was 
 	** established has been fulfilled.
@@ -94,4 +97,12 @@ const class CloseFrameStatusCodes {
 	** certificate can't be verified).
 	static const Int tlsHandshake				:= 1015
 
+}
+
+internal mixin CloseMsgs {
+	
+	static const Str normalClosure				:= "Normal closure"
+	static const Str frameNotMasked				:= "Protocol Error: Frame payload was not masked"
+	static const Str unsupportedData			:= "UnsupportedData"
+	static const Str payloadNotStr				:= "Frame payload contained invalid UTF data"
 }

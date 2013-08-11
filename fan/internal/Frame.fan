@@ -6,11 +6,11 @@ internal class Frame {
 	Bool		fin
 	Bool		maskFrame
 	
-	new make(|This|in) {
+	private new make(|This|in) {
 		in(this)
 	}
 	
-	new makeFromText(Str text) {
+	new makeTextFrame(Str text) {
 		this.type		= FrameType.text
 		this.payload	= text.toBuf(Charset.utf8)
 		this.fin		= true
@@ -24,35 +24,44 @@ internal class Frame {
 		this.maskFrame	= false
 	}
 
+	Frame fromClient() {
+		this.maskFrame	= true
+		return this
+	}
+	
+	Str? payloadAsStr() {
+		try {
+			return (payload.remaining > 0) ? payload.readChars(payload.remaining) : null
+		} catch (IOErr ioe) {
+			throw CloseFrameErr(CloseCodes.invalidFramePayloadData, CloseMsgs.payloadNotStr)
+		}
+	}
+	
 	** Writes this frame to the given OutStream
 	Void writeTo(OutStream out) {
-		buf		:= Buf(payload.size + 14)	// 14 is the max no of extra frame bytes
-		
 		byte	:= type.opCode
 		if (fin)
 			byte = byte.or(0x80)
 
-		buf.write(byte)
+		out.write(byte)
 
 		// FIXME: to dat 126 / 127 thing!
 		byte	= payload.size
 		if (maskFrame)
 			byte	= byte.or(0x80)
-		buf.write(byte)	
+		out.write(byte)	
 
 		if (maskFrame) {
 			maskBuf := Buf(4).writeI4(Int.random(0..<2.pow(32)))
-			buf.writeBuf(maskBuf.flip)
+			out.writeBuf(maskBuf.flip)
 			payload.size.times |i| {
 				j := maskBuf[i.mod(4)]
 				payload[i] = payload[i].xor(j)
 			}
 		}
 		
-		buf.writeBuf(payload)
-
-		// write it out!
-		buf.flip.in.pipe(out)
+		payload.seek(0)
+		out.writeBuf(payload)
 	}
 	
 	

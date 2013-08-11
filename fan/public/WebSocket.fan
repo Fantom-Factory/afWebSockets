@@ -24,10 +24,10 @@ mixin WebSocket {
 	** 'send()' method (the number does not reset to zero once the connection closes).
 	abstract Int bufferedAmount()
 
-	abstract |->|[] 		onOpen()
-	abstract |MsgEvent|[] 	onMessage()
-//	abstract |->|[] 		onError()
-	abstract |CloseEvent|[] onClose()
+	abstract |->|? 			onOpen
+	abstract |MsgEvent|? 	onMessage
+//	abstract |->|?			onError
+	abstract |CloseEvent|?	onClose
 	
 	** Transmits data through the WebSocket connection.
 	abstract Void send(Str data)
@@ -71,5 +71,13 @@ const class CloseEvent {
 	** Returns 'null' if the connection was not closed cleanly.
 	const Str? reason
 	
-	new make(|This|in) { in(this) }
+	internal new make(|This|in) { in(this) }
+	
+	internal Void writeTo(OutStream resOut) {
+		Frame.makeCloseFrame(code, reason).writeTo(resOut)
+	}
+	
+	override Str toStr() {
+		(wasClean ? "Clean" : "Unclean") + " close - ${code}: ${reason}"
+	}
 }
