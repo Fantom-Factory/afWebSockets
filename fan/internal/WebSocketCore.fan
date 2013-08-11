@@ -81,7 +81,7 @@ internal const class WebSocketCore {
 					webSocket.readyState = ReadyState.closing
 					closeCode 	:= (frame.payload.remaining >= 2) ? frame.payload.readU2 : CloseCodes.noStatusRcvd
 					closeReason	:= (closeCode == CloseCodes.noStatusRcvd) ? null : frame.payloadAsStr
-					// purists will hate me for this! using Errs for flow logic!
+					// purists will hate me for this! Using Errs for flow logic!
 					throw CloseFrameErr(closeCode, closeReason)
 				}
 
@@ -92,19 +92,19 @@ internal const class WebSocketCore {
 					continue
 				}
 
-				throw CloseFrameErr(CloseCodes.unsupportedData, CloseMsgs.unsupportedData)
+				throw CloseFrameErr(CloseCodes.unsupportedData, CloseMsgs.unsupportedData(frame.type))
 			}
 
 		} catch (CloseFrameErr err) {
-			err.trace
 			webSocket.readyState = ReadyState.closing
 			err.closeEvent.writeTo(resOut)
 			webSocket.onClose?.call(err.closeEvent)
-			webSocket.readyState = ReadyState.closed
 			
 		} catch (Err err) {
 		// die with 1011 internalError if catch Err
 			err.trace
-		}		
+		}
+		
+		webSocket.readyState = ReadyState.closed
 	}
 }

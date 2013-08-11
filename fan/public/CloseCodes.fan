@@ -103,6 +103,8 @@ internal mixin CloseMsgs {
 	
 	static const Str normalClosure				:= "Normal closure"
 	static const Str frameNotMasked				:= "Protocol Error: Frame payload was not masked"
-	static const Str unsupportedData			:= "UnsupportedData"
+	static Str unsupportedData(FrameType type) {
+		"Frame type ${type} not supported"
+	}
 	static const Str payloadNotStr				:= "Frame payload contained invalid UTF data"
 }

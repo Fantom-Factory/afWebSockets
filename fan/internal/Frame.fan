@@ -19,7 +19,8 @@ internal class Frame {
 
 	new makeCloseFrame(Int code, Str reason) {
 		this.type		= FrameType.close
-		this.payload	= Buf().writeI2(code).writeUtf(reason)
+		this.payload	= Buf(reason.size + 2).writeI2(code)
+		payload.writeChars(reason)
 		this.fin		= true
 		this.maskFrame	= false
 	}
@@ -28,10 +29,10 @@ internal class Frame {
 		this.maskFrame	= true
 		return this
 	}
-	
+
 	Str? payloadAsStr() {
 		try {
-			return (payload.remaining > 0) ? payload.readChars(payload.remaining) : null
+			return (payload.remaining > 0) ? payload.in.readChars(payload.remaining) : null
 		} catch (IOErr ioe) {
 			throw CloseFrameErr(CloseCodes.invalidFramePayloadData, CloseMsgs.payloadNotStr)
 		}
@@ -56,12 +57,12 @@ internal class Frame {
 			out.writeBuf(maskBuf.flip)
 			payload.size.times |i| {
 				j := maskBuf[i.mod(4)]
-				payload[i] = payload[i].xor(j)
+				out.write(payload[i].xor(j))
 			}
+		} else {
+			payload.seek(0)
+			out.writeBuf(payload)
 		}
-		
-		payload.seek(0)
-		out.writeBuf(payload)
 	}
 	
 	
