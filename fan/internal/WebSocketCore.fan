@@ -60,76 +60,51 @@ internal const class WebSocketCore {
 	}
 	
 	internal Void process(WebSocketServerImpl webSocket, InStream reqIn, OutStream resOut) {
-
-		Int? closeCode
-		Str? closeReason
-		Bool closeFrameSent
-
-		webSocket.onOpen.each |f| { f.call() }
-		
-		while (webSocket.readyState < ReadyState.closing) {
+		try {
+			webSocket.onOpen?.call()
 			
-			// TODO: move close info into Frame - and have it raise a CloseErr
-			frame 	:= Frame.readFrom(reqIn)
-			
-			// TODO: close proper!
-			if (frame == null) {
-				webSocket.readyState = ReadyState.closing
-				continue
-			}
-			
-			// sec5.1 - The server MUST close the connection upon receiving a frame that is not 
-			// masked. In this case, a server MAY send a Close frame with a status code of 1002 
-			// (protocol error)
-			if (!frame.maskFrame) {
-				webSocket.readyState = ReadyState.closing
-				closeCode 	= CloseFrameStatusCodes.protocolError
-				closeReason	= "Frame not masked"
-				Frame.makeCloseFrame(closeCode, closeReason).writeTo(resOut)
-				closeFrameSent = true
-				continue
-			}
-			
-			if (frame.type == FrameType.close) {
-				webSocket.readyState = ReadyState.closing
-				closeCode 	= (frame.payload.remaining >= 2) ? frame.payload.readU2 : CloseFrameStatusCodes.noStatusRcvd
-				try {
-					closeReason	= (frame.payload.remaining >  0) ? frame.payload.readAllStr : null
-				} catch (IOErr ioe) {
-					closeCode 	= CloseFrameStatusCodes.invalidFramePayloadData
-					closeReason	= "Close frame contained invalid UTF data"
+			while (webSocket.readyState < ReadyState.closing) {
+				
+				frame 	:= Frame.readFrom(reqIn)
+				
+				// TODO: close proper!
+				// TODO: die with a 1006 if connection is closed on us.
+				if (frame == null) {
+					webSocket.readyState = ReadyState.closing
+					continue
 				}
-				Frame.makeCloseFrame(closeCode, closeReason).writeTo(resOut)
-				closeFrameSent = true
-				continue
-			}
-			
-			if (frame.type == FrameType.text) {
-				// if not UTF-8 text - die with a 1007
-				message	:= frame.payload.readAllStr
+				
+				if (!frame.maskFrame)
+					throw CloseFrameErr(CloseCodes.protocolError, CloseMsgs.frameNotMasked)
+				
+				if (frame.type == FrameType.close) {
+					webSocket.readyState = ReadyState.closing
+					closeCode 	:= (frame.payload.remaining >= 2) ? frame.payload.readU2 : CloseCodes.noStatusRcvd
+					closeReason	:= (closeCode == CloseCodes.noStatusRcvd) ? null : frame.payloadAsStr
+					// purists will hate me for this! using Errs for flow logic!
+					throw CloseFrameErr(closeCode, closeReason)
+				}
 
-				msgEvt	:= MsgEvent() { it.msg = message }
-				Env.cur.err.printLine("GOT MESSAGE: $message")
-				webSocket.onMessage.each |f| { f.call(msgEvt) }
-				continue
+				if (frame.type == FrameType.text) {
+					message	:= frame.payloadAsStr	
+					msgEvt	:= MsgEvent() { it.msg = message }
+					webSocket.onMessage?.call(msgEvt)
+					continue
+				}
+
+				throw CloseFrameErr(CloseCodes.unsupportedData, CloseMsgs.unsupportedData)
 			}
 
-			// if frame unknown - fail connection with 1003
+		} catch (CloseFrameErr err) {
+			err.trace
 			webSocket.readyState = ReadyState.closing
-			closeCode 	= CloseFrameStatusCodes.unsupportedData
-			closeReason	= CloseFrameStatusCodes#unsupportedData.name.toDisplayName
-			Frame.makeCloseFrame(closeCode, closeReason).writeTo(resOut)
-			closeFrameSent = true
-
-		}
-		
-		// die with a 1006 if connection is closed on us.
-		
-		Env.cur.err.printLine("WS go bye bye now!")
-		webSocket.readyState = ReadyState.closed
-//		closeEvent := CloseEvent() { it.wasClean = true; it.code = closeCode; it.reason = closeReason }
-		closeEvent := CloseEvent() { it.wasClean = true; it.code = CloseFrameStatusCodes.normalClosure; it.reason = "Normal Closure" }
-		webSocket.onClose.each |f| { f.call(closeEvent) }
-		
+			err.closeEvent.writeTo(resOut)
+			webSocket.onClose?.call(err.closeEvent)
+			webSocket.readyState = ReadyState.closed
+			
+		} catch (Err err) {
+		// die with 1011 internalError if catch Err
+			err.trace
+		}		
 	}
 }

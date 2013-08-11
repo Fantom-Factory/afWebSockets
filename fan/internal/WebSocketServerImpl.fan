@@ -7,10 +7,10 @@ internal class WebSocketServerImpl : WebSocket {
 	override Str			protocol
 	override ReadyState		readyState	:= ReadyState.connecting
 	
-	override |->|[] 		onOpen		:= [,]
-	override |MsgEvent|[]	onMessage	:= [,]
-//	override |->|[] 		onError		:= [,]
-	override |CloseEvent|[] onClose		:= [,]
+	override |->|? 			onOpen
+	override |MsgEvent|?	onMessage
+//	override |->|?			onError
+	override |CloseEvent|?	onClose
 
 
 	new make(Uri url, Str protocol, WsRes res, |This|? in := null) {
