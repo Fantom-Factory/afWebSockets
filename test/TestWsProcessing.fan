@@ -20,7 +20,7 @@ internal class TestWsProcessing : WsTest {
 		webSocket.onMessage = |MsgEvent me| { msgEvent = me }
 		webSocket.onClose = |CloseEvent ce| { closeEvent = ce }
 	}
-	
+
 	Void testOnOpenCallback() {
 		wsCore.process(webSocket, wsReq.in, wsRes.out)		
 		verify(openEvent)
@@ -45,6 +45,7 @@ internal class TestWsProcessing : WsTest {
 
 	Void testNonMaksedFrameClosesConnection() {
 		Frame.makeCloseFrame(69, "Emma").writeTo(reqInBuf.out)
+		reqInBuf.flip
 
 		wsCore.process(webSocket, wsReq.in, wsRes.out)
 		verifyNull(msgEvent)
@@ -61,7 +62,7 @@ internal class TestWsProcessing : WsTest {
 		verifyNull(msgEvent)
 		verifyEq(closeEvent.wasClean, 	true)
 		verifyEq(closeEvent.code, 		CloseCodes.unsupportedData)
-		verifyEq(closeEvent.reason, 	CloseMsgs.unsupportedData)
+		verifyEq(closeEvent.reason, 	CloseMsgs.unsupportedData(FrameType.binary))
 	}
 
 	Void testClientCloseCodeIsPingedBack() {
