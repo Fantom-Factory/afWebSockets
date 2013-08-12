@@ -34,13 +34,24 @@ internal class TestWsProcessing : WsTest {
 		verifyEq(msgEvent.msg, "Hello Peeps!")
 	}
 
-	Void testOnCloseCallbackNormal() {
+	Void testOnCloseCallback() {
 		Frame.makeCloseFrame(CloseCodes.normalClosure, CloseMsgs.normalClosure).fromClient.writeTo(reqInBuf.out)
 		reqInBuf.flip
 		
 		wsCore.process(webSocket, wsReq.in, wsRes.out)
 		verifyEq(closeEvent.code, 	CloseCodes.normalClosure)
 		verifyEq(closeEvent.reason, CloseMsgs.normalClosure)
+	}
+
+	Void testOnErrorCallback() {
+		webSocket.onMessage = |MsgEvent me| { throw Err("Boobies") }
+		Frame.makeTextFrame("Hello!").fromClient.writeTo(reqInBuf.out)
+		reqInBuf.flip
+
+		wsCore.process(webSocket, wsReq.in, wsRes.out)
+
+		verifyEq(closeEvent.code, 	CloseCodes.internalError)
+		verifyEq(closeEvent.reason, CloseMsgs.internalError(Err("Boobies")))
 	}
 
 	Void testNonMaksedFrameClosesConnection() {
@@ -62,7 +73,7 @@ internal class TestWsProcessing : WsTest {
 		verifyNull(msgEvent)
 		verifyEq(closeEvent.wasClean, 	true)
 		verifyEq(closeEvent.code, 		CloseCodes.unsupportedData)
-		verifyEq(closeEvent.reason, 	CloseMsgs.unsupportedData(FrameType.binary))
+		verifyEq(closeEvent.reason, 	CloseMsgs.unsupportedFrame(FrameType.binary))
 	}
 
 	Void testClientCloseCodeIsPingedBack() {
@@ -80,4 +91,48 @@ internal class TestWsProcessing : WsTest {
 		verifyEq(closeCode, 			69)
 		verifyEq(closeReason, 			"Emma")		
 	}
+
+	Void testClientSocketReqInDisconnect() {
+		wsCore.process(webSocket, wsReq.in, wsRes.out)
+		frame := Frame.readFrom(wsRes.buf.flip.in)
+		
+		verifyEq(closeEvent.wasClean, 	false)
+		verifyEq(closeEvent.code, 		CloseCodes.abnormalClosure)
+		verifyEq(closeEvent.reason, 	CloseMsgs.abnormalClosure)
+		verifyNull(frame)
+	}
+	
+	Void testCloseReasonIsOptional() {
+		Frame.makeCloseFrame(69, null).fromClient.writeTo(reqInBuf.out)
+		reqInBuf.flip
+
+		wsCore.process(webSocket, wsReq.in, wsRes.out)
+		
+		verifyEq(closeEvent.wasClean, 	true)
+		verifyEq(closeEvent.code, 		69)
+		verifyEq(closeEvent.reason, 	null)
+	}	
+
+	Void testCloseStatusIsOptional() {
+		Frame.makeCloseFrame(null, "Emma").fromClient.writeTo(reqInBuf.out)
+		reqInBuf.flip
+
+		wsCore.process(webSocket, wsReq.in, wsRes.out)
+		
+		verifyEq(closeEvent.wasClean, 	true)
+		verifyEq(closeEvent.code, 		CloseCodes.noStatusRcvd)
+		verifyEq(closeEvent.reason, 	null)
+	}
+
+	Void testErrCloseFrameSentToClient() {
+		webSocket.onMessage = |MsgEvent me| { throw Err("Boobies") }
+		Frame.makeTextFrame("Hello!").fromClient.writeTo(reqInBuf.out)
+		reqInBuf.flip
+
+		wsCore.process(webSocket, wsReq.in, wsRes.out)
+		frame := Frame.readFrom(wsRes.buf.flip.in)
+		
+		verifyEq(frame.payload.readU2, 	CloseCodes.internalError)
+		verifyEq(frame.payloadAsStr, 	CloseMsgs.internalError(Err("Boobies")))
+	}	
 }

@@ -13,6 +13,10 @@ mixin WebSocket {
 	** The subprotocol selected by the server. 
 	** Returns 'emptyStr' if none selected.
 	abstract Str		protocol()
+
+	** The extensions selected by the server.
+	** Returns 'emptyStr'.
+	abstract Str		extensions()
 	
 	** Returns the state of the connection.
 	abstract ReadyState	readyState()
@@ -26,11 +30,11 @@ mixin WebSocket {
 
 	abstract |->|? 			onOpen
 	abstract |MsgEvent|? 	onMessage
-//	abstract |->|?			onError
+	abstract |Err|?			onError
 	abstract |CloseEvent|?	onClose
 	
 	** Transmits data through the WebSocket connection.
-	abstract Void send(Str data)
+	abstract Void sendText(Str data)
 	
 	** Closes the WebSocket connection.
 	** Does nothing if the connection is already closed or closing.
@@ -52,32 +56,3 @@ enum class ReadyState {
 	closed;
 }
 
-const class MsgEvent {
-	const Str msg
-	
-	new make(|This|in) { in(this) }
-}
-
-const class CloseEvent {
-	
-	** Returns 'true' if the connection was closed cleanly.
-	const Bool wasClean
-	
-	** The WebSocket connection close code provided by the server.
-	** Returns 'null' if the connection was not closed cleanly.
-	const Int? code
-	
-	** The WebSocket connection close reason provided by the server.
-	** Returns 'null' if the connection was not closed cleanly.
-	const Str? reason
-	
-	internal new make(|This|in) { in(this) }
-	
-	internal Void writeTo(OutStream resOut) {
-		Frame.makeCloseFrame(code, reason).writeTo(resOut)
-	}
-	
-	override Str toStr() {
-		(wasClean ? "Clean" : "Unclean") + " close - ${code}: ${reason}"
-	}
-}

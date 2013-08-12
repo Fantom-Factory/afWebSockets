@@ -5,7 +5,7 @@ const class WebSocketErr : Err {
 
 internal const class CloseFrameErr : Err {
 	const CloseEvent closeEvent
-	new make(Int code, Str reason, Bool wasClean := true) : super("${code}: ${reason}", null) {
+	new make(Int code, Str? reason, Bool wasClean := true) : super("${code}: ${reason}", null) {
 		this.closeEvent = CloseEvent { it.wasClean = wasClean; it.code = code; it.reason = reason }
 	}	
 }
