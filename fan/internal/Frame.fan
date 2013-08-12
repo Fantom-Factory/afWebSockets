@@ -49,6 +49,7 @@ internal class Frame {
 	
 	** Writes this frame to the given OutStream
 	Void writeTo(OutStream out) {
+		// TODO: catch IOErr should OutStream be closed and throw unclean CloseFrameErr
 		byte		:= type.opCode
 		if (fin)	byte = byte.or(0x80)
 		if (rsv1)	byte = byte.or(0x40)
