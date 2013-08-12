@@ -29,11 +29,15 @@ internal class WebSocketServerImpl : WebSocket {
 		
 		// TODO: check con state
 		// TODO: add/set buffered amount
-		Frame("Whoop Whoop!").writeTo(res.out)
+		Frame(data).writeTo(res.out)
 		res.out.flush
 		
 	}
 	
-	override Void close() { }
+	override Void close() { 
+		
+		// TODO: close!
+		
+	}
 
 }

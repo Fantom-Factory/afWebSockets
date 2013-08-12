@@ -1,7 +1,7 @@
 using afIoc
 using afBedSheet
 
-// The afBedSheet class
+** A request handler for [afBedSheet]`http://repo.status302.com/doc/afBedSheet/#overview`
 const class WebSocketHandler {
 
 			private const Uri:Method 			handlers
@@ -30,6 +30,8 @@ const class WebSocketHandler {
 
 		this.handlers 		= handlers.toImmutable
 		this.webSocketCore	= WebSocketCore()
+		
+		// TODO: onRegShutdown - kill / close active WebSockets with 1001
 	}
 
 	Obj service(Uri remainingUri := ``) {
