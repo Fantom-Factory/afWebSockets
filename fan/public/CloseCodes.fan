@@ -101,10 +101,14 @@ internal const mixin CloseCodes {
 
 internal mixin CloseMsgs {
 	
-	static const Str normalClosure				:= "Normal closure"
-	static const Str frameNotMasked				:= "Protocol Error: Frame payload was not masked"
-	static Str unsupportedData(FrameType type) {
-		"Frame type ${type} not supported"
-	}
-	static const Str payloadNotStr				:= "Frame payload contained invalid UTF data"
+	static const Str normalClosure				:= "Normal Closure"
+	static const Str frameNotMasked				:= "Protocol Error: Frame payload not masked"
+	static const Str payloadNotStr				:= "Invalid Frame Payload Data: Frame payload contained invalid UTF data"
+	static const Str abnormalClosure			:= "Abnormal Closure: No close control frame received"
+	
+	static Str frameInvalidLength(Int length)		{ "Protocol Error: Frame payload length must be positive: ${length}"	}
+	static Str unsupportedFrame(FrameType type)		{ "Unsupported Data: Frame type ${type} not supported"					}
+	static Str unsupportedOpCode(Int type)			{ "Unsupported Data: OpCode ${type} not supported"						}
+	static Str internalError(Err err)				{ "Internal Error: ${err.typeof.qname} - ${err.msg}"					}
+
 }

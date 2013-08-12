@@ -59,7 +59,7 @@ internal const class WebSocketCore {
 		return true
 	}
 	
-	internal Void process(WebSocketServerImpl webSocket, InStream reqIn, OutStream resOut) {
+	Void process(WebSocketServerImpl webSocket, InStream reqIn, OutStream resOut) {
 		try {
 			webSocket.onOpen?.call()
 			
@@ -67,12 +67,8 @@ internal const class WebSocketCore {
 				
 				frame 	:= Frame.readFrom(reqIn)
 				
-				// TODO: close proper!
-				// TODO: die with a 1006 if connection is closed on us.
-				if (frame == null) {
-					webSocket.readyState = ReadyState.closing
-					continue
-				}
+				if (frame == null) 
+					throw CloseFrameErr(CloseCodes.abnormalClosure, CloseMsgs.abnormalClosure, false)
 				
 				if (!frame.maskFrame)
 					throw CloseFrameErr(CloseCodes.protocolError, CloseMsgs.frameNotMasked)
@@ -92,17 +88,20 @@ internal const class WebSocketCore {
 					continue
 				}
 
-				throw CloseFrameErr(CloseCodes.unsupportedData, CloseMsgs.unsupportedData(frame.type))
+				throw CloseFrameErr(CloseCodes.unsupportedData, CloseMsgs.unsupportedFrame(frame.type))
 			}
 
 		} catch (CloseFrameErr err) {
 			webSocket.readyState = ReadyState.closing
-			err.closeEvent.writeTo(resOut)
+			if (err.closeEvent.wasClean)
+				err.closeEvent.writeTo(resOut)
 			webSocket.onClose?.call(err.closeEvent)
 			
 		} catch (Err err) {
-		// die with 1011 internalError if catch Err
-			err.trace
+			webSocket.readyState = ReadyState.closing
+			closeEvent := CloseEvent { it.wasClean = true; it.code = CloseCodes.internalError; it.reason = CloseMsgs.internalError(err) }
+			closeEvent.writeTo(resOut)
+			webSocket.onClose?.call(closeEvent)
 		}
 		
 		webSocket.readyState = ReadyState.closed
