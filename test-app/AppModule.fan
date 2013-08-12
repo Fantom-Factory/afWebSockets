@@ -2,7 +2,7 @@ using afIoc
 using afBedSheet
 
 @SubModule { modules=[WebSocketsModule#] }
-class AppModule {
+internal class AppModule {
 	
 	@Contribute { serviceType=Routes# }
 	static Void contributeRoutes(OrderedConfig conf) {
