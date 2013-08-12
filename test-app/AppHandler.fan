@@ -1,11 +1,11 @@
 
-class AppFactory {
+internal class AppFactory {
 	Void create(WebSocket webSocket) {
 		app	:= AppHandler(webSocket)
 	}
 }
 
-class AppHandler {
+internal class AppHandler {
 	
 	private WebSocket webSocket
 	

@@ -3,7 +3,7 @@
 //[Constructor(in DOMString url, in optional DOMString[] protocols)]
 
 // TODO: make const
-** The main WebSocket interface as defined by the [W3C WebSocket API]`http://www.w3.org/TR/2011/WD-websockets-20110419/`. 
+** The main WebSocket interface as defined by the [W3C WebSocket API]`http://www.w3.org/TR/websockets/`. 
 mixin WebSocket {
 	
 	** The URI the WebSocket is connected to.
