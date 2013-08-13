@@ -20,24 +20,26 @@ internal class WebSocketServerImpl : WebSocket {
 		this.protocol 	= protocol
 		this.res		= res
 	}
-	
+
 	override Int bufferedAmount() {
 		0	// TODO: bufferedAmount
 	}
-	
+
 	override Void sendText(Str data) {
+		if (readyState != ReadyState.open)
+			return
 		
-		// TODO: check con state
 		// TODO: add/set buffered amount
 		Frame(data).writeTo(res.out)
-		res.out.flush
-		
 	}
 	
-	override Void close() { 
+	override Void close(Int? code := null, Str? reason := null) { 
+		// when the client pongs the close frame back, we'll close the connection
+		readyState = ReadyState.closing
+		Frame(code, reason).writeTo(res.out)
 		
-		// TODO: close!
-		
+		// TODO: it'd be nice to able to set a timeout and 'interrupt' the blocked requestIn.read()
+		// for now, potentially, we're open to attack from many clients holding the connection open.
 	}
 
 }

@@ -47,7 +47,6 @@ const class WebSocketHandler {
 			res.setStatusCode(400)
 			return false
 		}
-		
 
 		httpResponse.disableGzip = true
 		httpResponse.disableBuffering = true
@@ -69,6 +68,7 @@ const class WebSocketHandler {
 		handlerInvoker.invokeHandler(wsHandler)		
 
 		// the meat of the WebSocket connection
+		webSocket.readyState = ReadyState.open
 		webSocketCore.process(webSocket, reqIn, resOut)
 		
 		return true

@@ -38,6 +38,7 @@ const class WebSocketWebMod : WebMod {
 		}
 
 		// the meat of the WebSocket connection
+		webSocket.readyState = ReadyState.open
 		webSocketCore.process(webSocket, reqIn, resOut)
 	}
 

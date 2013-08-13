@@ -38,7 +38,7 @@ mixin WebSocket {
 	
 	** Closes the WebSocket connection.
 	** Does nothing if the connection is already closed or closing.
-	abstract Void close()
+	abstract Void close(Int? code := null, Str? reason := null)
 }
 
 ** The state of the WebSocket connection.
