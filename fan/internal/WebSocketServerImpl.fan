@@ -4,8 +4,8 @@ internal class WebSocketServerImpl : WebSocket {
 	private WsRes res
 	
 	override Uri 			url
-	override Str			protocol
-	override Str			extensions
+	override Str			protocol	:= ""
+	override Str			extensions	:= ""
 	override ReadyState		readyState	:= ReadyState.connecting
 	
 	override |->|? 			onOpen
