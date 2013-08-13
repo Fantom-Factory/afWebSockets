@@ -91,6 +91,9 @@ internal class Frame {
 			payload.seek(0)
 			out.writeBuf(payload)
 		}
+		
+		// flush it down the pipe...
+		out.flush
 	}
 	
 	** Reads a frame from the given InStream

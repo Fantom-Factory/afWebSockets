@@ -99,6 +99,13 @@ internal const class WebSocketCore {
 			
 		} catch (Err err) {
 			webSocket.readyState = ReadyState.closing
+			
+			try {
+				webSocket.onError?.call(err)
+			} catch (Err eek) {
+				log.warn("Err in onError() handler", eek)
+			}
+			
 			closeEvent := CloseEvent { it.wasClean = true; it.code = CloseCodes.internalError; it.reason = CloseMsgs.internalError(err) }
 			closeEvent.writeTo(resOut)
 			webSocket.onClose?.call(closeEvent)
