@@ -1,11 +1,11 @@
 
 internal class WsReqTestImpl : WsReq {
+	Buf buf	:= Buf()
 	override Version	httpVersion	:= Version("1.1")
 	override Str		httpMethod	:= "GET"
 	override Str:Str	headers		:= Utils.makeMap(Str#, Str#)
-	override InStream 	in
-	new make(InStream in) { 
-		this.in	= in
+	override InStream 	in()		{ buf.in }
+	new make() { 
 		headers["Host"] 					= "localhost:8070" 
 		headers["Connection"] 				= "keep-alive, Upgrade" 
 		headers["Upgrade"] 					= "WebSocket" 

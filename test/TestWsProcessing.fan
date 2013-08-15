@@ -11,14 +11,15 @@ internal class TestWsProcessing : WsTest {
 	Bool? 					openEvent
 	
 	override Void setup() {
-		reqInBuf	= Buf()
-		wsReq		= WsReqTestImpl(reqInBuf.in)
+		wsReq		= WsReqTestImpl()
 		wsRes		= WsResTestImpl()
 		webSocket 	= WebSocketServerImpl(``, "", wsRes)
 		wsCore		= WebSocketCore()
 		webSocket.onOpen = |->| { openEvent = true }
 		webSocket.onMessage = |MsgEvent me| { msgEvent = me }
 		webSocket.onClose = |CloseEvent ce| { closeEvent = ce }
+		
+		reqInBuf	= wsReq.buf
 	}
 
 	Void testOnOpenCallback() {
