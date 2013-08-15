@@ -7,7 +7,7 @@ internal class TestWsHandshake : WsTest {
 	WebSocketCore? core
 
 	override Void setup() {
-		req = WsReqTestImpl("".in)
+		req = WsReqTestImpl()
 		res = WsResTestImpl()
 		core= WebSocketCore()
 	}

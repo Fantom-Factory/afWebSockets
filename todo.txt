@@ -1,16 +1,21 @@
 
+readme.md
+
+Ping - Pong
+
+Do binary frames (as it's now in Js API)
+
 Need a WebSocksets client, with a JS native...
+
+register ws: and wss:schemas - for WebSocketClients
+ - resolve to Fantom WS client  
  
- 
-Maybe send and receive should be on a diff actor to the Actor that consumes the msgs
+Maybe send and receive should be on a diff actor to the Actor that consumes the msgs?
   - when server sends data to the client, need a way to quickly serialise the Buf contents across Actor boundraries
 
 v1.0 does not support extensions, protocols, binary data or frame fragmentation continuations.
  
 Check if GZIP just works!??
-
-register ws: and wss:schemas - for WebSocketClients
- - resolve to Fantom WS client  
 
 
 

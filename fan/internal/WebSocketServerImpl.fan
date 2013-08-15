@@ -4,9 +4,10 @@ internal class WebSocketServerImpl : WebSocket {
 	private WsRes res
 	
 	override Uri 			url
-	override Str			protocol	:= ""
-	override Str			extensions	:= ""
-	override ReadyState		readyState	:= ReadyState.connecting
+	override Str			protocol		:= ""
+	override Str			extensions		:= ""
+	override ReadyState		readyState		:= ReadyState.connecting
+	override Int 			bufferedAmount	:= 0
 	
 	override |->|? 			onOpen
 	override |MsgEvent|?	onMessage
@@ -21,16 +22,15 @@ internal class WebSocketServerImpl : WebSocket {
 		this.res		= res
 	}
 
-	override Int bufferedAmount() {
-		0	// TODO: bufferedAmount
-	}
-
 	override Void sendText(Str data) {
+		frame := Frame(data)
+		bufferedAmount += frame.payload.size
+		
 		if (readyState != ReadyState.open)
 			return
 		
-		// TODO: add/set buffered amount
-		Frame(data).writeTo(res.out)
+		frame.writeTo(res.out)
+		bufferedAmount -= frame.payload.size
 	}
 	
 	override Void close(Int? code := null, Str? reason := null) { 
