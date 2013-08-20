@@ -1,9 +1,21 @@
 
-readme.md
+For 0.0.2 Preview Release
+-------------------------
+Make work with new wisp
 
-Ping - Pong
+podoc / readme.md
+State / doc does not support extensions, protocols, frame fragmentation / continuations.
 
 Do binary frames (as it's now in Js API)
+
+make WebSocket const (will need to Unsafe Buf)
+
+Check if GZIP just works!??
+ - Accept-Encoding: gzip, deflate
+
+
+For 1.0
+-------
 
 Need a WebSocksets client, with a JS native...
 
@@ -12,26 +24,6 @@ register ws: and wss:schemas - for WebSocketClients
  
 Maybe send and receive should be on a diff actor to the Actor that consumes the msgs?
   - when server sends data to the client, need a way to quickly serialise the Buf contents across Actor boundraries
-
-v1.0 does not support extensions, protocols, binary data or frame fragmentation continuations.
  
-Check if GZIP just works!??
 
-
-
-Firefox handshake req headers
-  Connection: keep-alive, Upgrade
-  Host: localhost:8070
-  Accept-Language: en-gb,en-us;q=0.7,en;q=0.3
-  Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
-  Origin: http://localhost:8069
-  User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:22.0) Gecko/20100101 Firefox/22.0
-  DNT: 1
-  Pragma: no-cache
-  Upgrade: websocket
-  Cache-Control: no-cache
-  Sec-WebSocket-Key: L3vSWlgMnhQWv2FldG/QTQ==
-  Accept-Encoding: gzip, deflate
-  Sec-WebSocket-Version: 13
-  
   

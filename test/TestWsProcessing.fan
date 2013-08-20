@@ -9,6 +9,7 @@ internal class TestWsProcessing : WsTest {
 	MsgEvent? 				msgEvent
 	CloseEvent? 			closeEvent
 	Bool? 					openEvent
+	Err? 					errEvent
 	
 	override Void setup() {
 		wsReq		= WsReqTestImpl()
@@ -18,6 +19,7 @@ internal class TestWsProcessing : WsTest {
 		webSocket.onOpen = |->| { openEvent = true }
 		webSocket.onMessage = |MsgEvent me| { msgEvent = me }
 		webSocket.onClose = |CloseEvent ce| { closeEvent = ce }
+		webSocket.onError = |Err err| { errEvent = err }
 		
 		reqInBuf	= wsReq.buf
 	}
@@ -135,5 +137,33 @@ internal class TestWsProcessing : WsTest {
 		
 		verifyEq(frame.payload.readU2, 	CloseCodes.internalError)
 		verifyEq(frame.payloadAsStr, 	CloseMsgs.internalError(Err("Boobies")))
+	}	
+
+	Void testPongFrameDoesNothing() {
+		Frame.makePongFrame().fromClient.writeTo(reqInBuf.out)
+		Frame.makeCloseFrame(CloseCodes.normalClosure, CloseMsgs.normalClosure).fromClient.writeTo(reqInBuf.out)
+		reqInBuf.flip
+
+		wsCore.process(webSocket, wsReq.in, wsRes.out)
+		
+		verifyNull(msgEvent)
+		verifyNull(errEvent)
+		verifyEq(closeEvent.wasClean, 	true)
+		verifyEq(closeEvent.code, 		CloseCodes.normalClosure)
+	}	
+
+	Void testPingFrameSendsPongFrame() {
+		Frame.makePingFrame().fromClient.writeTo(reqInBuf.out)
+		Frame.makeCloseFrame(CloseCodes.normalClosure, CloseMsgs.normalClosure).fromClient.writeTo(reqInBuf.out)
+		reqInBuf.flip
+
+		wsCore.process(webSocket, wsReq.in, wsRes.out)
+		frame := Frame.readFrom(wsRes.buf.flip.in)
+		
+		verifyNull(msgEvent)
+		verifyNull(errEvent)
+		verifyEq(closeEvent.wasClean, 	true)
+		verifyEq(closeEvent.code, 		CloseCodes.normalClosure)
+		verifyEq(frame.type, 			FrameType.pong)
 	}	
 }
