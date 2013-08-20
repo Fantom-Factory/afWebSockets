@@ -73,12 +73,13 @@ internal const class WebSocketCore {
 				if (!frame.maskFrame)
 					throw CloseFrameErr(CloseCodes.protocolError, CloseMsgs.frameNotMasked)
 				
-				if (frame.type == FrameType.close) {
-					webSocket.readyState = ReadyState.closing
-					closeCode 	:= (frame.payload.remaining >= 2) ? frame.payload.readU2 : CloseCodes.noStatusRcvd
-					closeReason	:= (closeCode == CloseCodes.noStatusRcvd) ? null : frame.payloadAsStr
-					// purists will hate me for this! Using Errs for flow logic!
-					throw CloseFrameErr(closeCode, closeReason)
+				if (frame.type == FrameType.ping) {
+					Frame.makePongFrame.writeTo(resOut)
+					continue
+				}
+
+				if (frame.type == FrameType.pong) {
+					continue
 				}
 
 				if (frame.type == FrameType.text) {
@@ -86,6 +87,14 @@ internal const class WebSocketCore {
 					msgEvt	:= MsgEvent() { it.msg = message }
 					webSocket.onMessage?.call(msgEvt)
 					continue
+				}
+
+				if (frame.type == FrameType.close) {
+					webSocket.readyState = ReadyState.closing
+					closeCode 	:= (frame.payload.remaining >= 2) ? frame.payload.readU2 : CloseCodes.noStatusRcvd
+					closeReason	:= (closeCode == CloseCodes.noStatusRcvd) ? null : frame.payloadAsStr
+					// purists will hate me for this! Using Errs for flow logic!
+					throw CloseFrameErr(closeCode, closeReason)
 				}
 
 				throw CloseFrameErr(CloseCodes.unsupportedData, CloseMsgs.unsupportedFrame(frame.type))

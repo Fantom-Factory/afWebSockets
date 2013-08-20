@@ -20,6 +20,20 @@ internal class Frame {
 		this.maskFrame	= false
 	}
 
+	new makePingFrame() {
+		this.type		= FrameType.ping
+		this.fin		= true
+		this.payload	= Buf(0)
+		this.maskFrame	= false
+	}
+
+	new makePongFrame() {
+		this.type		= FrameType.pong
+		this.fin		= true
+		this.payload	= Buf(0)
+		this.maskFrame	= false
+	}
+
 	new makeCloseFrame(Int? code, Str? reason) {
 		this.type		= FrameType.close
 		this.payload	= Buf((reason?.size ?: 0) + 2)
