@@ -19,11 +19,11 @@ internal class TestWsHandlerCtor : WsTest {
 		}
 	}
 
-	Void testUriNotEndWithSlash() {
-		verifyWsErrMsg(WsErrMsgs.wsHandlerUriMustEndWithSlash(`/wotever`)) {
-			fh := WebSocketHandler( [`/wotever`:#valid] )
-		}
-	}
+//	Void testUriNotEndWithSlash() {
+//		verifyWsErrMsg(WsErrMsgs.wsHandlerUriMustEndWithSlash(`/wotever`)) {
+//			fh := WebSocketHandler( [`/wotever`:#valid] )
+//		}
+//	}
 	
 	Void valid(WebSocket ws) { }
 	Void invalid(Int ulp) { }
