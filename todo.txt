@@ -6,7 +6,7 @@ Make work with new wisp
 podoc / readme.md
 State / doc does not support extensions, protocols, frame fragmentation / continuations.
 
-Do binary frames (as it's now in Js API)
+write demo app
 
 make WebSocket const (will need to Unsafe Buf)
 
@@ -16,6 +16,9 @@ Check if GZIP just works!??
 
 For 1.0
 -------
+Do binary frames (as it's now in Js API)
+ - onMsg(type) or 
+ - onTextMsg() / onBinaryMsg() ???
 
 Need a WebSocksets client, with a JS native...
 
@@ -25,5 +28,5 @@ register ws: and wss:schemas - for WebSocketClients
 Maybe send and receive should be on a diff actor to the Actor that consumes the msgs?
   - when server sends data to the client, need a way to quickly serialise the Buf contents across Actor boundraries
  
-
+continuation frames could be supported by supplying an OutStream rather than a Buf.
   

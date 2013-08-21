@@ -50,10 +50,10 @@ internal mixin WsErrMsgs {
 	}
 
 	static Str wsHandlerUriMustStartWithSlash(Uri uri) {
-		"Uri '${uri}' must start with a path. e.g. `/foo/bar/`"
+		"Uri '${uri}' must start with a slash. e.g. `/foo/bar/`"
 	}
 
-	static Str wsHandlerUriMustEndWithSlash(Uri uri) {
-		"Uri '${uri}' must end with a path. e.g. `/foo/bar/`"
-	}	
+//	static Str wsHandlerUriMustEndWithSlash(Uri uri) {
+//		"Uri '${uri}' must end with a slash. e.g. `/foo/bar/`"
+//	}	
 }

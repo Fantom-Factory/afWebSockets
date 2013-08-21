@@ -24,8 +24,8 @@ const class WebSocketHandler {
 				throw WebSocketErr(WsErrMsgs.wsHandlerUriNotPathOnly(uri))
 			if (!uri.isPathAbs)
 				throw WebSocketErr(WsErrMsgs.wsHandlerUriMustStartWithSlash(uri))
-			if (!uri.isDir)
-				throw WebSocketErr(WsErrMsgs.wsHandlerUriMustEndWithSlash(uri))
+//			if (!uri.isDir)
+//				throw WebSocketErr(WsErrMsgs.wsHandlerUriMustEndWithSlash(uri))
 		}
 
 		this.handlers 		= handlers.toImmutable
@@ -34,7 +34,7 @@ const class WebSocketHandler {
 		// TODO: onRegShutdown - kill / close active WebSockets with 1001
 	}
 
-	Obj service(Uri remainingUri := ``) {
+	Obj service() {
 		
 		req	:= WsReqBsImpl(httpRequest)
 		res	:= WsResBsImpl(httpResponse)
@@ -59,10 +59,25 @@ const class WebSocketHandler {
 		webSocket := WebSocketServerImpl(httpRequest.uri, "", res)
 		
 		// use pathStr to knockout any unwanted query str
-		matchedUri := httpRequest.modRel.pathStr[0..<-remainingUri.pathStr.size].toUri
-		// We pass 'false' to prevent Errs being thrown if the uri is a dir but doesn't end in '/'.
-		// The 'false' appends a '/' automatically - it's nicer web behaviour
-	    method := handlers[matchedUri]
+		matchedUri := httpRequest.modRel.pathStr
+		Env.cur.err.printLine("URI=${matchedUri}")
+	    method := handlers[matchedUri.toUri]
+		Env.cur.err.printLine("meth=${method}")
+		
+		// FIXME: die nicely if no route found
+//		// throw Err if user mapped the Route but forgot to contribute a matching dir to this handler 
+//		if (!dirMappings.containsKey(matchedUri)) {
+//			msg := """<p><b>The path '${matchedUri}' is unknown. </b></p>
+//			          <p><b>Add the following to your AppModule: </b></p>
+//			          <code>@Contribute { serviceType=FileHandler# }
+//			          static Void contributeFileMapping(MappedConfig conf) {
+//			
+//			            conf[`${matchedUri}`] = `/path/to/files/`.toFile
+//			
+//			          }</code>
+//			          """
+//			throw HttpStatusErr(501, msg)
+//		}		
 		
 		wsHandler := RouteHandler(method, [webSocket])
 		handlerInvoker.invokeHandler(wsHandler)		
