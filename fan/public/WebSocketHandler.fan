@@ -8,7 +8,7 @@ const class WebSocketHandler {
 
 	@Inject private const HttpRequest 			httpRequest
 	@Inject private const HttpResponse			httpResponse
-	@Inject private const ReqestHandlerInvoker	handlerInvoker
+	@Inject private const ResponseProcessors	responseProcessor
 
 			private const WebSocketCore			webSocketCore
 
@@ -79,8 +79,8 @@ const class WebSocketHandler {
 //			throw HttpStatusErr(501, msg)
 //		}		
 		
-		wsHandler := RouteHandler(method, [webSocket])
-		handlerInvoker.invokeHandler(wsHandler)		
+		wsHandler := MethodCall(method, [webSocket])
+		responseProcessor.processResponse(wsHandler)
 
 		// the meat of the WebSocket connection
 		webSocket.readyState = ReadyState.open
