@@ -56,10 +56,10 @@ const class WebSocketHandler {
 		reqIn 	:= req.in
 
 		
-		webSocket := WebSocketServerImpl(httpRequest.uri, "", res)
+		webSocket := WebSocketServerImpl(httpRequest.url, "", res)
 		
 		// use pathStr to knockout any unwanted query str
-		matchedUri := httpRequest.modRel.pathStr
+		matchedUri := httpRequest.url.pathStr
 		Env.cur.err.printLine("URI=${matchedUri}")
 	    method := handlers[matchedUri.toUri]
 		Env.cur.err.printLine("meth=${method}")
