@@ -7,20 +7,20 @@ class Build : BuildPod {
 		summary = "A WebSockets protocol implementation for Fantom."
 		version = Version([0,0,1])
 
-		meta	= [	"org.name"		: "Alien-Factory",
-					"org.uri"		: "http://www.alienfactory.co.uk/",
-					"vcs.uri"		: "https://bitbucket.org/AlienFactory/afwebsockets",
-					"proj.name"		: "AF-WebSockets",
-					"license.name"	: "BSD 2-Clause License",
-					"repo.private"	: "true",
-				]
+		meta	= [	
+			"proj.name"		: "Web Sockets",
+			"repo.private"	: "true",
+		]
 
-		depends = ["sys 1.0",  "web 1.0", 
-					"afIoc 1.4+", "afBedSheet 1.0+"]
+		depends = [
+			"sys 1.0", 
+			"web 1.0",
+
+			"afIoc 2.0+",
+			"afBedSheet 1.0+"
+		]
+
 		srcDirs = [`test-app/`, `test/`, `test/internal/`, `test/internal/utils/`, `fan/`, `fan/public/`, `fan/internal/`, `fan/internal/utils/`]
 		resDirs = [`doc/`]
-
-		docApi = true
-		docSrc = true
 	}
 }

@@ -5,19 +5,17 @@ using afBedSheet
 internal class AppModule {
 	
 	@Contribute { serviceType=Routes# }
-	static Void contributeRoutes(OrderedConfig conf) {
+	static Void contributeRoutes(Configuration conf) {
 		conf.add(Route(`/ws/***`,	WebSocketHandler#service))
-
-		conf.add(Route(`/web/***`, 		FileHandler#service))
 	}
 	
 	@Contribute { serviceType=FileHandler# }
-	static Void contributeFileMapping(MappedConfig conf) {
+	static Void contributeFileMapping(Configuration conf) {
 		conf[`/web/`] = `etc/`.toFile
 	}
 	
 	@Contribute { serviceType=WebSocketHandler# }
-	static Void contributeWebSocketMapping(MappedConfig conf) {
+	static Void contributeWebSocketMapping(Configuration conf) {
 		conf[`/ws/`] = AppFactory#create
 	}
 
