@@ -6,7 +6,7 @@ internal class WsReqBsImpl : WsReq {
 	override Version	httpVersion()	{ req.httpVersion	}
 	override Str		httpMethod()	{ req.httpMethod 	}
 	override Str:Str	headers()		{ req.headers.map	}
-	override InStream	in() 			{ req.in 			}
+	override InStream	in() 			{ req.body.in 		}
 	new make(HttpRequest req) { this.req = req }
 }
 

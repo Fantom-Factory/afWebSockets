@@ -1,5 +1,6 @@
 using afIoc
 using afBedSheet
+using afBeanUtils
 
 ** A request handler for [afBedSheet]`http://repo.status302.com/doc/afBedSheet/#overview`
 const class WebSocketHandler {
@@ -18,7 +19,7 @@ const class WebSocketHandler {
 		// TODO register with reg shutdown and close all active ws conns with 1001 (going away)
 		
 		handlers.each |method, uri| {
-			if (!ReflectUtils.paramTypesFitMethodSignature([WebSocket#], method))
+			if (!ReflectUtils.argTypesFitMethod([WebSocket#], method))
 				throw WebSocketErr(WsErrMsgs.wsHandlerMethodWrongParams(method, [WebSocket#]))
 			if (!uri.isPathOnly)
 				throw WebSocketErr(WsErrMsgs.wsHandlerUriNotPathOnly(uri))

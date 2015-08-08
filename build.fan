@@ -16,11 +16,12 @@ class Build : BuildPod {
 			"sys 1.0", 
 			"web 1.0",
 
-			"afIoc 2.0+",
-			"afBedSheet 1.0+"
+			"afIoc      2.0.10 - 2.1",
+			"afBeanUtils     1+",
+			"afBedSheet 1.4.14 - 1.4"
 		]
 
-		srcDirs = [`test-app/`, `test/`, `test/internal/`, `test/internal/utils/`, `fan/`, `fan/public/`, `fan/internal/`, `fan/internal/utils/`]
+		srcDirs = [`test-app/`, `test/`, `fan/`, `fan/public/`, `fan/internal/`]
 		resDirs = [`doc/`]
 	}
 }

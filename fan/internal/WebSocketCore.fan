@@ -1,8 +1,8 @@
 using web::WebUtil
 
 internal const class WebSocketCore {
-	private const static Log log := Utils.getLog(WebSocketCore#)
-	private static const Version httpVer11	:= Version("1.1")
+	private static const Log 		log 		:= WebSocketCore#.pod.log
+	private static const Version	httpVer11	:= Version("1.1")
 
 	Bool handshake(WsReq req, WsRes res, Str? allowedOrigins := null) {
 		if (req.httpVersion < httpVer11)
