@@ -3,7 +3,7 @@ internal class WsReqTestImpl : WsReq {
 	Buf buf	:= Buf()
 	override Version	httpVersion	:= Version("1.1")
 	override Str		httpMethod	:= "GET"
-	override Str:Str	headers		:= Utils.makeMap(Str#, Str#)
+	override Str:Str	headers		:= Str:Str[:] { caseInsensitive = true}
 	override InStream 	in()		{ buf.in }
 	new make() { 
 		headers["Host"] 					= "localhost:8070" 
