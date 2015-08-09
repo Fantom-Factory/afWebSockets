@@ -1,5 +1,6 @@
 using afBedSheet::HttpRequest
 using afBedSheet::HttpResponse
+using web
 
 internal class WsReqBsImpl : WsReq {
 	private HttpRequest	req
@@ -12,8 +13,9 @@ internal class WsReqBsImpl : WsReq {
 
 internal class WsResBsImpl : WsRes {
 	private HttpResponse	res
-	override Str:Str		headers()	{ res.headers.map 	}
+	private WebRes	res2
+	override Str:Str		headers()	{ res2.headers 	}
 	override OutStream		out()		{ res.out 			}
 	override Void setStatusCode(Int statusCode) { res.statusCode = statusCode } 	
-	new make(HttpResponse res) { this.res = res }
+	new make(HttpResponse res, WebRes	res2) { this.res = res; this.res2=res2 }
 }
