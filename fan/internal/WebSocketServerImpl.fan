@@ -1,7 +1,8 @@
+using web::WebRes
 
 internal class WebSocketServerImpl : WebSocket {
 
-	private WsRes res
+	private WebRes res
 	
 	override Uri 			url
 	override Str			protocol		:= ""
@@ -15,7 +16,7 @@ internal class WebSocketServerImpl : WebSocket {
 	override |CloseEvent|?	onClose
 
 
-	new make(Uri url, Str protocol, WsRes res, |This|? in := null) {
+	new make(Uri url, Str protocol, WebRes res, |This|? in := null) {
 		in?.call(this)
 		this.url 		= url
 		this.protocol 	= protocol

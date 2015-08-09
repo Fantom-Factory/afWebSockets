@@ -3,7 +3,7 @@
 const class MsgEvent {
 	const Str msg
 	
-	new make(|This|in) { in(this) }
+	internal new make(|This|in) { in(this) }
 }
 
 ** Sent on a `WebSocket` close event.

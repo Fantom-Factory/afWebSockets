@@ -1,7 +1,8 @@
+using web
 
 internal class TestWsServerImpl : WsTest {
 
-	WsReqTestImpl? 			wsReq
+	WsReqTestImpl?			wsReq
 	WsResTestImpl? 			wsRes
 	WebSocketServerImpl?	webSocket
 	Buf?					resOutBuf

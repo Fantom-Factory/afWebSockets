@@ -10,7 +10,7 @@ const class WebSocketHandler {
 
 	@Inject private const HttpRequest 			httpRequest
 	@Inject private const HttpResponse			httpResponse
-	@Inject private const Registry				reg
+	@Inject private const Registry				registry
 	@Inject private const ResponseProcessors	responseProcessor
 
 			private const WebSocketCore			webSocketCore
@@ -27,8 +27,6 @@ const class WebSocketHandler {
 				throw WebSocketErr(WsErrMsgs.wsHandlerUriNotPathOnly(uri))
 			if (!uri.isPathAbs)
 				throw WebSocketErr(WsErrMsgs.wsHandlerUriMustStartWithSlash(uri))
-//			if (!uri.isDir)
-//				throw WebSocketErr(WsErrMsgs.wsHandlerUriMustEndWithSlash(uri))
 		}
 
 		this.handlers 		= handlers.toImmutable
@@ -38,16 +36,15 @@ const class WebSocketHandler {
 	}
 
 	Obj service(Uri uri) {
-		
-		req	:= WsReqBsImpl(httpRequest)
-		res	:= WsResBsImpl(httpResponse, reg.serviceById(WebRes#.qname))
+		req	:= (WebReq) registry.serviceById(WebReq#.qname)
+		res	:= (WebRes) registry.serviceById(WebRes#.qname)
 		
 		try {
 			ok 	:= webSocketCore.handshake(req, res)
 			if (!ok) return false
 			
 		} catch (WebSocketErr wsErr) {
-			res.setStatusCode(400)
+			res.statusCode = 400
 			return false
 		}
 

@@ -1,10 +1,19 @@
+using web
+using inet
 
-internal class WsReqTestImpl : WsReq {
-	Buf buf	:= Buf()
-	override Version	httpVersion	:= Version("1.1")
-	override Str		httpMethod	:= "GET"
-	override Str:Str	headers		:= Str:Str[:] { caseInsensitive = true}
-	override InStream 	in()		{ buf.in }
+internal class WsReqTestImpl : WebReq {
+			 Buf			buf			:= Buf()
+	override Str 			method		:= "GET"
+	override Version 		version		:= Version("1.1")
+	override IpAddr 		remoteAddr	() { (Obj) -1 }
+	override Int 			remotePort	:= -1
+	override Uri 			uri			:= ``
+	override WebMod 		mod			:= DefaultWebMod()
+	override Str:Str 		headers		:= Str:Str[:]
+	override WebSession		session		() { (Obj) -1 }
+	override InStream		in			:= buf.in
+	override SocketOptions	socketOptions() { (Obj) -1 }
+	
 	new make() { 
 		headers["Host"] 					= "localhost:8070" 
 		headers["Connection"] 				= "keep-alive, Upgrade" 
@@ -14,11 +23,18 @@ internal class WsReqTestImpl : WsReq {
 	}
 }
 
-internal class WsResTestImpl : WsRes {
-	Int? statusCode
-	Buf buf	:= Buf()
-	override Str:Str	headers	:= [:]
-	override Void setStatusCode(Int statusCode) { this.statusCode = statusCode } 	
-	override OutStream out() { buf.out }
+internal class WsResTestImpl : WebRes {
+			 Buf			buf			:= Buf()
+	override Int 			statusCode	:= 200
+	override Str:Str 		headers		:= Str:Str[:]
+	override Cookie[] 		cookies		:= Cookie[,]
+	override Bool 			isCommitted	:= false
+	override WebOutStream	out			:= WebOutStream(buf.out)
+	override Bool 			isDone		:= false
+		
+	override Void redirect(Uri uri, Int statusCode := 303) { }
+	override Void sendErr(Int statusCode, Str? msg := null) { }
+	override Void done() {}	
 }
 
+internal const class DefaultWebMod : WebMod { }

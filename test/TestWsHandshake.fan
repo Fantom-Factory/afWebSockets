@@ -1,3 +1,4 @@
+using web
 
 ** http://tools.ietf.org/html/rfc6455#section-4.2
 internal class TestWsHandshake : WsTest {
@@ -14,22 +15,22 @@ internal class TestWsHandshake : WsTest {
 	
 	Void testHandshakeMustBeHttpVersion11() {
 		verifyWsErrMsg(WsErrMsgs.handshakeWrongHttpVersion(Version("1.0"))) {
-			req.httpVersion = Version("1.0")
+			req.version = Version("1.0")
 			core.handshake(req, res)
 		}
 
 		// future proof
-		req.httpVersion = Version("1.2")
+		req.version = Version("1.2")
 		core.handshake(req, res)
 
 		// future proof
-		req.httpVersion = Version("2.0")
+		req.version = Version("2.0")
 		core.handshake(req, res)
 	}
 
 	Void testHandshakeMustBeHttpGet() {
 		verifyWsErrMsg(WsErrMsgs.handshakeWrongHttpMethod("POST")) {
-			req.httpMethod = "POST"
+			req.method = "POST"
 			core.handshake(req, res)
 		}
 	}
