@@ -30,6 +30,7 @@ mixin WebSocket {
 
 	abstract |->|? 			onOpen
 	abstract |MsgEvent|? 	onMessage
+	** Also called should the socket timeout
 	abstract |Err|?			onError
 	abstract |CloseEvent|?	onClose
 	

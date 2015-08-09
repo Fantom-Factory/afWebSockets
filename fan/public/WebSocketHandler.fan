@@ -1,14 +1,16 @@
+using web
 using afIoc
 using afBedSheet
 using afBeanUtils
 
-** A request handler for [afBedSheet]`http://repo.status302.com/doc/afBedSheet/#overview`
+** A request handler for BedSheet.
 const class WebSocketHandler {
 
 			private const Uri:Method 			handlers
 
 	@Inject private const HttpRequest 			httpRequest
 	@Inject private const HttpResponse			httpResponse
+	@Inject private const Registry				reg
 	@Inject private const ResponseProcessors	responseProcessor
 
 			private const WebSocketCore			webSocketCore
@@ -35,10 +37,10 @@ const class WebSocketHandler {
 		// TODO: onRegShutdown - kill / close active WebSockets with 1001
 	}
 
-	Obj service() {
+	Obj service(Uri uri) {
 		
 		req	:= WsReqBsImpl(httpRequest)
-		res	:= WsResBsImpl(httpResponse)
+		res	:= WsResBsImpl(httpResponse, reg.serviceById(WebRes#.qname))
 		
 		try {
 			ok 	:= webSocketCore.handshake(req, res)

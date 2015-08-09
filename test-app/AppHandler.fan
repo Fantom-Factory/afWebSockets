@@ -20,6 +20,7 @@ internal class AppHandler {
 		}
 		webSocket.onMessage = |MsgEvent me| { 
 			Env.cur.err.printLine("ES: onMsg - $me.msg")
+			webSocket.sendText("Hi hopney!")
 		}
 	}
 	
