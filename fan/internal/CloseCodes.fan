@@ -21,8 +21,6 @@
 ** - http://tools.ietf.org/html/rfc6455#section-7.4
 ** - http://www.iana.org/assignments/websocket/websocket.xml#close-code-number
 ** 
-// TODO: turn into const class with msgs - doc that it can't be enum 'cos any code is valid - only keep the ones we actually use - don't forget to impl equals
-// TODO: actually - don't!!!! Keep this internal
 internal const mixin CloseCodes {
 	
 	** Indicates a normal closure, meaning that the purpose for which the connection was 
@@ -100,15 +98,14 @@ internal const mixin CloseCodes {
 }
 
 internal mixin CloseMsgs {
-	
 	static const Str normalClosure				:= "Normal Closure"
 	static const Str frameNotMasked				:= "Protocol Error: Frame payload not masked"
 	static const Str payloadNotStr				:= "Invalid Frame Payload Data: Frame payload contained invalid UTF data"
 	static const Str abnormalClosure			:= "Abnormal Closure: No close control frame received"
 	
-	static Str frameInvalidLength(Int length)		{ "Protocol Error: Frame payload length must be positive: ${length}"	}
-	static Str unsupportedFrame(FrameType type)		{ "Unsupported Data: Frame type ${type} not supported"					}
-	static Str unsupportedOpCode(Int type)			{ "Unsupported Data: OpCode ${type} not supported"						}
-	static Str internalError(Err err)				{ "Internal Error: ${err.typeof.qname} - ${err.msg}"					}
+	static Str frameInvalidLength(Int length)	{ "Protocol Error: Frame payload length must be positive: ${length}"	}
+	static Str unsupportedFrame(FrameType type)	{ "Unsupported Data: Frame type ${type} not supported"					}
+	static Str unsupportedOpCode(Int type)		{ "Unsupported Data: OpCode ${type} not supported"						}
+	static Str internalError(Err err)			{ "Internal Error: ${err.typeof.qname} - ${err.msg}"					}
 
 }

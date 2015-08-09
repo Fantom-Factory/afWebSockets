@@ -1,5 +1,0 @@
-
-@NoDoc
-class WebSocketClient { 
-	
-}

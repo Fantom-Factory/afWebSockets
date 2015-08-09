@@ -11,24 +11,21 @@ const class WebSocketWebMod : WebMod {
 		this.handlerMethod = handlerMethod
 	}
 	
-	override Void onGet() {
-		wsReq	:= WsReqWebImpl(req)
-		wsRes	:= WsResWebImpl(res)
-		
+	override Void onGet() {		
 		try {
-			ok 	:= webSocketCore.handshake(wsReq, wsRes)
+			ok 	:= webSocketCore.handshake(req, res)
 			if (!ok) return
 			
 		} catch (WebSocketErr wsErr) {
-			wsRes.setStatusCode(400)
+			res.statusCode = 400
 			return
 		}
 		
 		// flush the headers out to the client
-		resOut 	:= wsRes.out.flush
-		reqIn 	:= wsReq.in
+		resOut 	:= res.out.flush
+		reqIn 	:= req.in
 		
-		webSocket := WebSocketServerImpl(req.uri, "", wsRes)
+		webSocket := WebSocketServerImpl(req.uri, "", res)
 		
 		if (handlerMethod.isStatic)
 			handlerMethod.call(webSocket)

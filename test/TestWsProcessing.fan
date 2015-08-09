@@ -1,8 +1,9 @@
+using web
 
 internal class TestWsProcessing : WsTest {
 
 	WsReqTestImpl? 			wsReq
-	WsResTestImpl? 			wsRes
+	WsResTestImpl?			wsRes
 	WebSocketServerImpl?	webSocket
 	WebSocketCore?			wsCore
 	Buf?					reqInBuf
@@ -16,12 +17,12 @@ internal class TestWsProcessing : WsTest {
 		wsRes		= WsResTestImpl()
 		webSocket 	= WebSocketServerImpl(``, "", wsRes)
 		wsCore		= WebSocketCore()
+		reqInBuf	= wsReq.buf
 		webSocket.onOpen = |->| { openEvent = true }
 		webSocket.onMessage = |MsgEvent me| { msgEvent = me }
 		webSocket.onClose = |CloseEvent ce| { closeEvent = ce }
 		webSocket.onError = |Err err| { errEvent = err }
 		
-		reqInBuf	= wsReq.buf
 	}
 
 	Void testOnOpenCallback() {

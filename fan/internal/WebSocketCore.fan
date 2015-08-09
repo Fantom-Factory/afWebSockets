@@ -1,15 +1,16 @@
-using web::WebUtil
+using web::WebReq
+using web::WebRes
 
 internal const class WebSocketCore {
 	private static const Log 		log 		:= WebSocketCore#.pod.log
 	private static const Version	httpVer11	:= Version("1.1")
 
-	Bool handshake(WsReq req, WsRes res, Str? allowedOrigins := null) {
-		if (req.httpVersion < httpVer11)
-			throw WebSocketErr(WsErrMsgs.handshakeWrongHttpVersion(req.httpVersion))
+	Bool handshake(WebReq req, WebRes res, Str? allowedOrigins := null) {
+		if (req.version < httpVer11)
+			throw WebSocketErr(WsErrMsgs.handshakeWrongHttpVersion(req.version))
 		
-		if (req.httpMethod != "GET")
-			throw WebSocketErr(WsErrMsgs.handshakeWrongHttpMethod(req.httpMethod))
+		if (req.method != "GET")
+			throw WebSocketErr(WsErrMsgs.handshakeWrongHttpMethod(req.method))
 		
 		if (req.headers["Host"] == null)
 			throw WebSocketErr(WsErrMsgs.handshakeHostHeaderNotFound(req.headers))
@@ -29,7 +30,7 @@ internal const class WebSocketCore {
 		if (!req.headers["Sec-WebSocket-Version"].equalsIgnoreCase("13")) {
 			log.warn(WsLogMsgs.handshakeWsVersionHeaderWrongValue(req.headers["Sec-WebSocket-Version"]))
 			res.headers["Sec-WebSocket-Version"] = "13"
-			res.setStatusCode(400)
+			res.statusCode = 400
 			return false
 		}
 
@@ -43,7 +44,7 @@ internal const class WebSocketCore {
 			originGlobs := (Regex[]) allowedOrigins.split(',').map { Regex.glob(it) }
 			if (!originGlobs.any |domain| { domain.matches(origin) }) {
 				log.warn(WsLogMsgs.handshakeOriginIsNotAllowed(origin, allowedOrigins))
-				res.setStatusCode(403)
+				res.statusCode = 403
 				return false
 			}
 		}
@@ -54,7 +55,7 @@ internal const class WebSocketCore {
 		res.headers["Upgrade"] 				= "websocket"
 		res.headers["Connection"] 			= "Upgrade"
 		res.headers["Sec-WebSocket-Accept"]	= resKey		
-		res.setStatusCode(101)
+		res.statusCode = 101
 		
 		return true
 	}

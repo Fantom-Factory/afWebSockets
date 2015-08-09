@@ -1,6 +1,5 @@
 
 internal class Frame {
-
 	FrameType	type
 	Buf			payload
 	Bool		fin
