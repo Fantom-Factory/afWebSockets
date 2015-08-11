@@ -8,7 +8,7 @@ using web
 const class WebSockets {
 	private static const Log 		log 		:= WebSockets#.pod.log	
 	private const WsProtocol 		wsProtocol	:= WsProtocol()
-	private const SynchronizedList	webSockets 
+	private const SynchronizedMap	webSockets 
 	
 			** The maximum amount of time a websocket blocks for while waiting for a message from the client.
 			** After this time the socket times out and the WebSocket closes.
@@ -27,7 +27,10 @@ const class WebSockets {
 	** Creates a 'WebSockets' instance. 
 	new make(ActorPool actorPool, |This|? f := null) {
 		f?.call(this)
-		webSockets = SynchronizedList(actorPool)
+		webSockets = SynchronizedMap(actorPool) {
+			it.keyType = Uri#
+			it.valType = Unsafe#
+		}
 	}
 	
 	** Services the given 'WebSocket'. 
@@ -56,23 +59,35 @@ const class WebSockets {
 
 		unsafeWs := Unsafe(webSocket)
 		try {
-			webSockets.add(unsafeWs)
+			webSockets[webSocket.id] = unsafeWs
 			wsProtocol.process(webSocket, req.in, res.out)
 		} finally {
 			webSockets.remove(unsafeWs)
 		}
 	}
 	
+	** Returns the 'WebSocket' associated with the given ID.
+	** Note that closed WebSockets no longer exist.
+	** 
+	** If a WebSocket could not be found then either 'null' is returned or an 'ArgErr' is thrown dependant on the value of 'checked'.
+	WebSocket? get(Uri webSocketId, Bool checked := true) {
+		unsafe := (Unsafe?) webSockets[webSocketId]
+		return unsafe?.val ?: (checked ? throw ArgErr("Could not find WebSocket with id '${webSocketId}'") : null)
+	}
 	
+	** Broadcasts the given message to all open WebSockets, or to just the WebSockets associated with the given IDs.
+	** This is a safe operation, as in if a WebSocket for a given ID could not be found, it is silently ignored. 
 	Void broadcast(Str msg, Uri[]? webSocketIds := null) {
-		webSockets.each |Unsafe unsafe| {
-			webSocket := (WebSocket) unsafe.val
-			webSocket.sendText(msg)
+		sockets := webSocketIds?.map { webSockets[it] } ?: webSockets.vals 
+		sockets.each |Unsafe? unsafe| {
+			webSocket := (WebSocket?) unsafe?.val
+			webSocket?.sendText(msg)
 		}
 	}
 	
+	** Closes all open WebSockets.
 	Void shutdown() {
-		webSockets.each |Unsafe unsafe| {
+		webSockets.vals.each |Unsafe unsafe| {
 			webSocket := (WebSocket) unsafe.val
 			webSocket.close(CloseCodes.goingAway, "Server shutting down...")
 		}		

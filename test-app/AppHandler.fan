@@ -8,6 +8,7 @@ internal class AppHandler {
 	
 	WebSocket goGoWebSocket() {
 		WebSocket() {
+			ws := it
 			onOpen = |->| { 
 				Env.cur.err.printLine("ES: onOpen")
 			}
@@ -16,7 +17,7 @@ internal class AppHandler {
 			}
 			onMessage = |MsgEvent me| { 
 				Env.cur.err.printLine("ES: onMsg - $me.msg")
-				webSockets.broadcast("Hi honey!")
+				webSockets.broadcast("${ws.id} says, '${me.msg}'")
 			}
 		}
 	}

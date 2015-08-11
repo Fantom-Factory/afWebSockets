@@ -2,14 +2,13 @@ using web::WebRes
 using concurrent::AtomicInt
 
 internal class WsAttachment {
-	private Uri			url
-	private OutStream	resOut
-	private AtomicInt	nextId
+				 private Uri		url
+				 private OutStream	resOut
+	static const private AtomicInt	nextId := AtomicInt(1) 
 	
 	new make(Uri url, OutStream resOut) {
 		this.url 	= url
 		this.resOut	= resOut
-		this.nextId	= AtomicInt(1)
 	}
 
 	This attach(WebSocket webSocket) {

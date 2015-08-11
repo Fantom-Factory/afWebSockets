@@ -26,6 +26,7 @@ const class CloseEvent {
 		Frame.makeCloseFrame(code, reason).writeTo(resOut)
 	}
 	
+	@NoDoc
 	override Str toStr() {
 		(wasClean ? "Clean" : "Unclean") + " close - ${code}: ${reason}"
 	}
