@@ -1,20 +1,20 @@
 using web::WebRes
+using concurrent::AtomicInt
 
 internal class WsAttachment {
-
 	private Uri			url
-	private Str			protocol
 	private OutStream	resOut
+	private AtomicInt	nextId
 	
-	new make(Uri url, Str protocol, OutStream resOut) {
-		this.url 		= url
-		this.protocol 	= protocol
-		this.resOut		= resOut
+	new make(Uri url, OutStream resOut) {
+		this.url 	= url
+		this.resOut	= resOut
+		this.nextId	= AtomicInt(1)
 	}
 
 	This attach(WebSocket webSocket) {
+		webSocket.id		 = ("afWebSocket:" + nextId.getAndIncrement.toStr.padl(4, '0')).toUri
 		webSocket.url 		 = url
-		webSocket.protocol	 = protocol
 		webSocket.readyState = ReadyState.open
 		return this
 	}
@@ -34,8 +34,5 @@ internal class WsAttachment {
 		// when the client pongs the close frame back, we'll close the connection
 		webSocket.readyState = ReadyState.closing
 		Frame(code, reason).writeTo(resOut)
-		
-		// TODO: it'd be nice to able to set a timeout and 'interrupt' the blocked requestIn.read()
-		// for now, potentially, we're open to attack from many clients holding the connection open.
 	}
 }

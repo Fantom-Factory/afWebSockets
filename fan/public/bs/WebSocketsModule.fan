@@ -5,7 +5,7 @@ using concurrent
 internal class WebSocketsModule {
 	
 	@Build
-	WebSockets buildWebSockets(ActorPools actorPools) {
+	static WebSockets buildWebSockets(ActorPools actorPools) {
 		WebSockets(actorPools["afBedSheet.webSockets"])
 	}
 	
@@ -17,5 +17,12 @@ internal class WebSocketsModule {
 	@Contribute { serviceType=ActorPools# }
 	static Void contributeActorPools(Configuration config) {
 		config["afBedSheet.webSockets"] = ActorPool() { it.name = "afBedSheet.webSockets" }
+	}
+	
+	@Contribute { serviceType=RegistryShutdown# }
+	static Void contributeRegistryShutdown(Configuration config, WebSockets webSockets) {
+		config["afBedSheet.webSockets"] = |->| {
+			webSockets.shutdown
+		}
 	}
 }
