@@ -1,10 +1,10 @@
 using afIoc
 using afBedSheet
 
-class WebSocketsModule {
+internal class WebSocketsModule {
 	
 	static Void defineServices(ServiceDefinitions defs) {
-		defs.add(WebSocketHandler#)
+		defs.add(WebSockets#)
 	}
 
 }

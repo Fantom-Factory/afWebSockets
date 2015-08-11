@@ -13,8 +13,9 @@ class Build : BuildPod {
 		]
 
 		depends = [
-			"sys 1.0", 
-			"web 1.0",
+			"sys        1.0", 
+			"concurrent 1.0",
+			"web        1.0",
 
 			"afIoc      2.0.10 - 2.1",
 			"afBeanUtils     1+",

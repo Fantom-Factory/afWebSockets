@@ -4,7 +4,7 @@ internal class TestWsProcessing : WsTest {
 
 	WsReqTestImpl? 			wsReq
 	WsResTestImpl?			wsRes
-	WebSocketServerImpl?	webSocket
+	WebSocket?				webSocket
 	WebSocketCore?			wsCore
 	Buf?					reqInBuf
 	MsgEvent? 				msgEvent
@@ -15,7 +15,7 @@ internal class TestWsProcessing : WsTest {
 	override Void setup() {
 		wsReq		= WsReqTestImpl()
 		wsRes		= WsResTestImpl()
-		webSocket 	= WebSocketServerImpl(``, "", wsRes)
+		webSocket 	= WebSocket()._attach(WsAttachment(``, "", wsRes))
 		wsCore		= WebSocketCore()
 		reqInBuf	= wsReq.buf
 		webSocket.onOpen = |->| { openEvent = true }

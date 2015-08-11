@@ -2,44 +2,97 @@
 //[Constructor(in DOMString url, in optional DOMString protocols)]
 //[Constructor(in DOMString url, in optional DOMString[] protocols)]
 
-// TODO: make const
 ** The main WebSocket interface as defined by the [W3C WebSocket API]`http://www.w3.org/TR/websockets/`. 
-mixin WebSocket {
+class WebSocket {
 	
 	** The URI the WebSocket is connected to.
-	abstract Uri 		url()
+	** Only available once connected.
+	Uri url {
+		internal set
+		get {
+			if (_attachment == null)
+				throw WebSocketErr(WsErrMsgs.wsNotAttached)
+			return &url
+		}
+	}
 	
 	// TODO: client U+0021 or greater than U+007E -> Err
 	** The subprotocol selected by the server. 
+	** Only available once connected.
 	** Returns 'emptyStr' if none selected.
-	abstract Str		protocol()
+	Str protocol {
+		internal set
+		get {
+			if (_attachment == null)
+				throw WebSocketErr(WsErrMsgs.wsNotAttached)
+			return &protocol
+		}
+	}
 
 	** The extensions selected by the server.
+	** Only available once connected.
 	** Returns 'emptyStr'.
-	abstract Str		extensions()
+	Str extensions {
+		internal set
+		get {
+			if (_attachment == null)
+				throw WebSocketErr(WsErrMsgs.wsNotAttached)
+			return &extensions
+		}
+	}
 	
 	** Returns the state of the connection.
-	abstract ReadyState	readyState()
-	
+	ReadyState readyState {
+		internal set
+	}
+
 	** The number of bytes of UTF-8 text that have been queued using send() but have not yet been 
 	** transmitted to the network.
 	** This does not include framing overhead incurred by the protocol. 
 	** If the connection is closed, this attribute's value will only increase with each call to the 
 	** 'send()' method (the number does not reset to zero once the connection closes).
-	abstract Int bufferedAmount()
+	Int bufferedAmount {
+		internal set
+	}
 
-	abstract |->|? 			onOpen
-	abstract |MsgEvent|? 	onMessage
+	** Hook for when the WebSocket is connected. 
+	|->|? 			onOpen
+	
+	** Hook for when a message is received. 
+	|MsgEvent|? 	onMessage
+	
+	** Hook for when an error occurs. 
 	** Also called should the socket timeout
-	abstract |Err|?			onError
-	abstract |CloseEvent|?	onClose
+	|Err|?			onError
+	
+	** Hook for when an WebSocket closes. 
+	|CloseEvent|?	onClose
+	
+	@NoDoc
+	new make() {
+		this.url			= ``
+		this.protocol		= ""
+		this.extensions		= ""
+		this.readyState		= ReadyState.connecting
+		this.bufferedAmount	= 0
+	}
 	
 	** Transmits data through the WebSocket connection.
-	abstract Void sendText(Str data)
+	Void sendText(Str data) {
+		_attachment.sendText(this, data)
+	}
 	
 	** Closes the WebSocket connection.
 	** Does nothing if the connection is already closed or closing.
-	abstract Void close(Int? code := null, Str? reason := null)
+	Void close(Int? code := null, Str? reason := null) {
+		_attachment.close(this, code, reason)		
+	}
+	
+	private WsAttachment? _attachment
+	internal This _attach(WsAttachment attachment) {
+		this._attachment = attachment.attach(this)
+		return this
+	}
 }
 
 ** The state of the WebSocket connection.
