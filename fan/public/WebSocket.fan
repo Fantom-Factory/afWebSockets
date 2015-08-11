@@ -2,9 +2,20 @@
 //[Constructor(in DOMString url, in optional DOMString protocols)]
 //[Constructor(in DOMString url, in optional DOMString[] protocols)]
 
-** The main WebSocket interface as defined by the [W3C WebSocket API]`http://www.w3.org/TR/websockets/`. 
+** The main 'WebSocket' class as defined by the [W3C WebSocket API]`http://www.w3.org/TR/websockets/`. 
+** 
+** To use, create an instance and pass to `WebSockets` to be serviced.
 class WebSocket {
 	
+	Uri id {
+		internal set		
+		get {
+			if (_attachment == null)
+				throw WebSocketErr(WsErrMsgs.wsNotAttached)
+			return &url
+		}
+	}
+
 	** The URI the WebSocket is connected to.
 	** Only available once connected.
 	Uri url {
@@ -13,31 +24,6 @@ class WebSocket {
 			if (_attachment == null)
 				throw WebSocketErr(WsErrMsgs.wsNotAttached)
 			return &url
-		}
-	}
-	
-	// TODO: client U+0021 or greater than U+007E -> Err
-	** The subprotocol selected by the server. 
-	** Only available once connected.
-	** Returns 'emptyStr' if none selected.
-	Str protocol {
-		internal set
-		get {
-			if (_attachment == null)
-				throw WebSocketErr(WsErrMsgs.wsNotAttached)
-			return &protocol
-		}
-	}
-
-	** The extensions selected by the server.
-	** Only available once connected.
-	** Returns 'emptyStr'.
-	Str extensions {
-		internal set
-		get {
-			if (_attachment == null)
-				throw WebSocketErr(WsErrMsgs.wsNotAttached)
-			return &extensions
 		}
 	}
 	
@@ -70,9 +56,8 @@ class WebSocket {
 	
 	@NoDoc
 	new make() {
+		this.id				= ``
 		this.url			= ``
-		this.protocol		= ""
-		this.extensions		= ""
 		this.readyState		= ReadyState.connecting
 		this.bufferedAmount	= 0
 	}
@@ -84,7 +69,10 @@ class WebSocket {
 	
 	** Closes the WebSocket connection.
 	** Does nothing if the connection is already closed or closing.
-	Void close(Int? code := null, Str? reason := null) {
+	** 
+	** The close code defaults to '1000 - Normal Closure' - see [RFC 6455 sec. 7.4.1]`https://tools.ietf.org/html/rfc6455#section-7.4.1` 
+	** for a list of valid close codes.
+	Void close(Int? code := 1000, Str? reason := null) {
 		_attachment.close(this, code, reason)		
 	}
 	
