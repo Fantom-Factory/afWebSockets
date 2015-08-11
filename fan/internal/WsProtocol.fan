@@ -1,8 +1,8 @@
 using web::WebReq
 using web::WebRes
 
-internal const class WebSocketCore {
-	private static const Log 		log 		:= WebSocketCore#.pod.log
+internal const class WsProtocol {
+	private static const Log 		log 		:= WsProtocol#.pod.log
 	private static const Version	httpVer11	:= Version("1.1")
 
 	Bool handshake(WebReq req, WebRes res, Str? allowedOrigins := null) {

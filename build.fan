@@ -15,15 +15,14 @@ class Build : BuildPod {
 		depends = [
 			"sys        1.0", 
 			"concurrent 1.0",
+			"inet       1.0",
 			"web        1.0",
 
-			"afIoc      2.0.10 - 2.1",
-			"afBeanUtils     1+",
-			
-			"afBedSheet 1.4.14 - 1.4",
-			
+			"afConcurrent 1.0.8 - 1.0",
+						
 			// ---- Testing ----
-			"inet 1.0"
+			"afIoc      2.0.10 - 2.1",
+			"afBedSheet 1.4.14 - 1.4",
 		]
 
 		srcDirs = [`test-app/`, `test/`, `fan/`, `fan/public/`, `fan/public/bs/`, `fan/internal/`]

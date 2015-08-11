@@ -1,26 +1,23 @@
-
-internal class AppFactory {
-	Void create(WebSocket webSocket) {
-		app	:= AppHandler(webSocket)
-	}
-}
+using afIoc
 
 internal class AppHandler {
 	
-	private WebSocket webSocket
+	@Inject private const WebSockets webSockets
 	
-	new make(WebSocket webSocket) {
-		this.webSocket = webSocket
-		
-		webSocket.onOpen = |->| { 
-			Env.cur.err.printLine("ES: onOpen")
-		}
-		webSocket.onClose = |->| { 
-			Env.cur.err.printLine("ES: onClose")
-		}
-		webSocket.onMessage = |MsgEvent me| { 
-			Env.cur.err.printLine("ES: onMsg - $me.msg")
-			webSocket.sendText("Hi hopney!")
+	new make(|This|in) { in(this) }
+	
+	WebSocket goGoWebSocket() {
+		WebSocket() {
+			onOpen = |->| { 
+				Env.cur.err.printLine("ES: onOpen")
+			}
+			onClose = |->| { 
+				Env.cur.err.printLine("ES: onClose")
+			}
+			onMessage = |MsgEvent me| { 
+				Env.cur.err.printLine("ES: onMsg - $me.msg")
+				webSockets.broadcast("Hi honey!")
+			}
 		}
 	}
 	

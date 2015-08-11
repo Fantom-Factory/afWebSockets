@@ -1,6 +1,8 @@
 using concurrent
 
-** Registers a `WebSockets` instance as a Fantom service; only needed if working with 'WebMods' directly.  
+** Registers a `WebSockets` instance as a Fantom service; only needed if working with 'WebMods' directly.
+** 
+** The 'WebSocketService' allows multiple 'WebMods' to access the same 'WebSockets' instance.
 const class WebSocketService : Service {
 	private static const Log 	log 			:= WebSocketService#.pod.log
 	private const AtomicRef		webSocketsRef	:= AtomicRef()
@@ -20,7 +22,7 @@ const class WebSocketService : Service {
 		checkServiceNotStarted
 		log.info("Starting IoC...");
 	
-		webSockets = WebSockets()
+		webSockets = WebSockets(ActorPool())
 	}
 
 	** Shuts down the WebSockets service.
