@@ -57,10 +57,14 @@ internal const class WebSocketCore {
 		res.headers["Sec-WebSocket-Accept"]	= resKey		
 		res.statusCode = 101
 		
+		// connection established
+		res.out.flush
+		req.socketOptions.receiveTimeout = 5min
+		
 		return true
 	}
 	
-	Void process(WebSocketServerImpl webSocket, InStream reqIn, OutStream resOut) {
+	Void process(WebSocket webSocket, InStream reqIn, OutStream resOut) {
 		try {
 			webSocket.onOpen?.call()
 			
