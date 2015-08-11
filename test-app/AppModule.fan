@@ -6,12 +6,7 @@ internal class AppModule {
 	
 	@Contribute { serviceType=Routes# }
 	static Void contributeRoutes(Configuration conf) {
-//		conf.add(Route(`/ws/***`,	WebSocketHandler#service))
+		conf.add(Route(`/ws`, AppHandler#goGoWebSocket))
 	}
-	
-//	@Contribute { serviceType=FileHandler# }
-//	static Void contributeFileMapping(Configuration conf) {
-//		conf[`/web/`] = `etc/`.toFile
-//	}
 
 }

@@ -3,14 +3,14 @@ using web
 ** http://tools.ietf.org/html/rfc6455#section-4.2
 internal class TestWsHandshake : WsTest {
 
-	WsReqTestImpl? req
-	WsResTestImpl? res
-	WebSocketCore? core
+	WsReqTestImpl?	req
+	WsResTestImpl?	res
+	WsProtocol?		core
 
 	override Void setup() {
 		req = WsReqTestImpl()
 		res = WsResTestImpl()
-		core= WebSocketCore()
+		core= WsProtocol()
 	}
 	
 	Void testHandshakeMustBeHttpVersion11() {

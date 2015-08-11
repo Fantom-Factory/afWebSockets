@@ -2,21 +2,21 @@ using web
 
 internal class TestWsProcessing : WsTest {
 
-	WsReqTestImpl? 			wsReq
-	WsResTestImpl?			wsRes
-	WebSocket?				webSocket
-	WebSocketCore?			wsCore
-	Buf?					reqInBuf
-	MsgEvent? 				msgEvent
-	CloseEvent? 			closeEvent
-	Bool? 					openEvent
-	Err? 					errEvent
+	WsReqTestImpl? 	wsReq
+	WsResTestImpl?	wsRes
+	WebSocket?		webSocket
+	WsProtocol?		wsCore
+	Buf?			reqInBuf
+	MsgEvent? 		msgEvent
+	CloseEvent? 	closeEvent
+	Bool? 			openEvent
+	Err? 			errEvent
 	
 	override Void setup() {
 		wsReq		= WsReqTestImpl()
 		wsRes		= WsResTestImpl()
-		webSocket 	= WebSocket()._attach(WsAttachment(``, "", wsRes))
-		wsCore		= WebSocketCore()
+		webSocket 	= WebSocket()._attach(WsAttachment(``, "", wsRes.out))
+		wsCore		= WsProtocol()
 		reqInBuf	= wsReq.buf
 		webSocket.onOpen = |->| { openEvent = true }
 		webSocket.onMessage = |MsgEvent me| { msgEvent = me }

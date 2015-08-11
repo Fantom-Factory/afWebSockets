@@ -1,12 +1,11 @@
 using afIoc
 using afBedSheet
 using web
+using concurrent
 
 internal const class WebSocketResponseProcessor : ResponseProcessor {
 	
-	@Inject private const HttpResponse	httpResponse
-	@Inject private const WebSocketCore	webSocketCore
-	@Inject private const Registry		registry
+	@Inject private const WebSockets	webSockets
 
 	internal new make(|This| in) {
 		in(this)
@@ -15,32 +14,16 @@ internal const class WebSocketResponseProcessor : ResponseProcessor {
 	override Obj process(Obj response) {
 		webSocket := (WebSocket) response
 
-		req	:= (WebReq) registry.serviceById(WebReq#.qname)
-		res	:= (WebRes) registry.serviceById(WebRes#.qname)
-		
-		try {
-			ok 	:= webSocketCore.handshake(req, res)
-			if (!ok) return true
-			
-		} catch (WebSocketErr wsErr) {
-			res.statusCode = 400
-			return true
-		}
-
-		httpResponse.disableGzip 		= true
-		httpResponse.disableBuffering	= true
-		
-		// flush the headers out to the client
-		resOut 	:= res.out.flush
-		reqIn 	:= req.in
-
-		// the meat of the WebSocket connection
-		
-//		webSocket := WebSocketServerImpl(httpRequest.url, "", res)
-//
-//		webSocket.readyState = ReadyState.open
-//		webSocketCore.process(webSocket, reqIn, resOut)
+		webSockets.service(req, res, webSocket)
 
 		return true
+	}
+	
+	private WebReq req() {
+		Actor.locals.containsKey("web.req") ? Actor.locals["web.req"] : throw Err("No web request active in thread")
+	}
+	
+	private WebRes res() {
+		Actor.locals.containsKey("web.res") ? Actor.locals["web.res"] : throw Err("No web request active in thread")
 	}
 }
