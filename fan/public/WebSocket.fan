@@ -7,12 +7,13 @@
 ** To use, create an instance and pass to `WebSockets` to be serviced.
 class WebSocket {
 	
+	** A unique ID for this 'WebSocket' instance. Use to retrieve instances from the 'WebSockets' instance.
 	Uri id {
 		internal set		
 		get {
 			if (_attachment == null)
 				throw WebSocketErr(WsErrMsgs.wsNotAttached)
-			return &url
+			return &id
 		}
 	}
 
@@ -74,6 +75,11 @@ class WebSocket {
 	** for a list of valid close codes.
 	Void close(Int? code := 1000, Str? reason := null) {
 		_attachment.close(this, code, reason)		
+	}
+	
+	@NoDoc
+	override Str toStr() {
+		"$id - $url"
 	}
 	
 	private WsAttachment? _attachment
