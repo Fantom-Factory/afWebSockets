@@ -9,7 +9,7 @@ class WebSockExample {
 
 	Void main() {
 		webSock := WebSocket().open(`ws://localhost:8069/ws`)
-		convBox := Text { text = "The conversation:\n"; multiLine = true; editable = false }
+		convBox := Text { text = "The conversation:\r\n"; multiLine = true; editable = false }
 		textBox := Text { text = "Say something!" }
 		sendMsg := |Event e| {
 			webSock.sendText(textBox.text)
@@ -17,25 +17,13 @@ class WebSockExample {
 		}
 
 		webSock.onMessage = |MsgEvent msgEnv| {
-			echo("msf $msgEnv.msg")
-			convBox.text += "\n" + msgEnv.msg + "\n"			
-		}
-
-		webSock.onOpen = |->| {
-			echo("onOpen")
-		}
-
-		webSock.onClose = |CloseEvent ce| {
-			echo("onClose $ce")
-		}
-
-		webSock.onError = |Err err| {
-			err.trace
+			convBox.text += "\r\n" + msgEnv.msg			
 		}
 
 		textBox.onAction.add(sendMsg)
 
 		window := Window {
+			title = "WebSocket ChatBox Example"
 			InsetPane {
 				EdgePane {
 					center	= convBox
@@ -48,18 +36,17 @@ class WebSockExample {
         }
 
 		if (Env.cur.runtime != "js") {
-			unsafe := Unsafe(webSock)
-			window.onActive {
-				Synchronized(ActorPool()).async |->| {
-					echo("opening unsafe")
-					webSocket	:= (WebSocket) unsafe.val
-					onMessage	:= Unsafe(webSocket.onMessage)
-					webSocket.onMessage = |MsgEvent msgEnv| {
-						Desktop.callAsync |->| { onMessage.val->call(msgEnv) }
-					}
-					webSocket.read
-				}
-	        }
+			// ensure message events are run in the UI thread
+			safeMess := Unsafe(webSock.onMessage)
+			webSock.onMessage = |MsgEvent msgEnv| {
+				Desktop.callAsync |->| { safeMess.val->call(msgEnv) }
+			}
+
+			// call the blocking read() method in a background thread
+			safeSock := Unsafe(webSock)
+			Synchronized(ActorPool()).async |->| {
+				safeSock.val->read
+			}
 		}
 		
 		window.open

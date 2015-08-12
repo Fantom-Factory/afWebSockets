@@ -107,7 +107,7 @@ internal const class WsProtocol {
 				}
 
 				if (frame.type == FrameType.text) {
-					message	:= frame.payloadAsStr	
+					message	:= frame.payloadAsStr ?: ""
 					msgEvt	:= MsgEvent() { it.msg = message }
 					webSocket.onMessage?.call(msgEvt)
 					continue
@@ -128,21 +128,25 @@ internal const class WsProtocol {
 			webSocket.readyState = ReadyState.closing
 			if (err.closeEvent.wasClean)
 				webSocket.writeFrame(err.closeEvent.toFrame)
-			webSocket.onClose?.call(err.closeEvent)
+
+			try webSocket.onClose?.call(err.closeEvent)
+			catch (Err eek)
+				log.warn("Err in onClose() handler", eek)
 			
 		} catch (Err err) {
 			webSocket.readyState = ReadyState.closing
 			
-			try {
-				webSocket.onError?.call(err)
-			} catch (Err eek) {
+			try webSocket.onError?.call(err)
+			catch (Err eek)
 				log.warn("Err in onError() handler", eek)
-			}
 			
 			closeEvent := CloseEvent { it.wasClean = true; it.code = CloseCodes.internalError; it.reason = CloseMsgs.internalError(err) }
-			try 	webSocket.writeFrame(closeEvent.toFrame)
-			catch	{ /* meh */ }
-			webSocket.onClose?.call(closeEvent)
+			try webSocket.writeFrame(closeEvent.toFrame)
+			catch { /* meh */ }
+
+			try webSocket.onClose?.call(closeEvent)
+			catch (Err eek)
+				log.warn("Err in onClose() handler", eek)
 		}
 		
 		webSocket.readyState = ReadyState.closed
