@@ -6,7 +6,8 @@ using inet::TcpSocket
 using afConcurrent
 
 internal class WebSocketFan : WebSocket {
-	static const private AtomicInt	nextId := AtomicInt(1) 
+	static const private AtomicInt	nextId		:= AtomicInt(1) 
+	static const private WsProtocol	wsProtocol	:= WsProtocol()
 				private InStream?	reqIn
 				private OutStream?	resOut
 				private Bool 		connected
@@ -37,43 +38,17 @@ internal class WebSocketFan : WebSocket {
 	override This open(Uri url, Str[]? protocols := null) {
 		if (url.scheme != "ws" && url.scheme != "wss")
 			throw ArgErr(WsErrMsgs.wrongWsScheme(url))
-		this.url		= url
 
 		httpUri := ("http" + url.toStr[2..-1]).toUri
-		key := Buf.random(16).toBase64
 		c := WebClient(httpUri)
 
-		// TODO: move to WsProtocol.handshake and give better error messages
-		c.reqMethod								= "GET"
-		c.reqHeaders["Upgrade"]					= "websocket"
-		c.reqHeaders["Connection"]				= "Upgrade"
-		c.reqHeaders["Sec-WebSocket-Key"]		= key
-		c.reqHeaders["Sec-WebSocket-Version"]	= 13.toStr
-		if (protocols != null)
-			c.reqHeaders["Sec-WebSocket-Protocol"]	= protocols.join(", ")
-		c.writeReq
-		
-		c.readRes
-		if (c.resCode != 101)									throw IOErr("Bad HTTP response $c.resCode $c.resPhrase")
-		if (c.resHeaders["Upgrade"]    != "websocket")			throw IOErr("Invalid Upgrade header")
-		if (c.resHeaders["Connection"] != "Upgrade")			throw IOErr("Invalid Connection header")
-		digest		:= c.resHeaders["Sec-WebSocket-Accept"] ?:	throw IOErr("Missing Sec-WebSocket-Accept header")
-		secDigest	:= Buf().print(key).print("258EAFA5-E914-47DA-95CA-C5AB0DC85B11").toDigest("SHA-1").toBase64
-		if (secDigest != digest) 								throw IOErr("Mismatch Sec-WebSocket-Accept")
+		wsProtocol.shakeHandsWithServer(c, protocols)
 		
 		// TODO: pester Brian to make socket field public and @NoDoc'ed
 		socket := (TcpSocket) WebClient#.field("socket").get(c)
-		resOut = socket.out
-		
-		this.readyState = ReadyState.open
-		connected 		= true
 
-		WsProtocol().process(this)
-		return this
-	}
-	
-	override Void sendText(Str data) {
-		writeFrame(Frame(data))
+		isClient = true
+		return connect(url, socket.in, socket.out)
 	}
 	
 	override Void close(Int? code := 1000, Str? reason := null) {
@@ -81,8 +56,17 @@ internal class WebSocketFan : WebSocket {
 		readyState = ReadyState.closing
 		writeFrame(Frame(code, reason))
 	}
+
+	override Void read() {
+		wsProtocol.process(this)
+	}
 	
-	This service(Uri url, InStream reqIn, OutStream resOut) {
+	override Void sendText(Str data) {
+		echo("sending data")
+		writeFrame(Frame(data))
+	}
+	
+	This connect(Uri url, InStream reqIn, OutStream resOut) {
 		this.url 		= url
 		this.reqIn		= reqIn
 		this.resOut		= resOut
@@ -101,10 +85,7 @@ internal class WebSocketFan : WebSocket {
 		if (readyState != ReadyState.open && readyState != ReadyState.closing)
 			return
 		
-		if (isClient)
-			frame.fromClient.writeTo(resOut)
-		else
-			frame.writeTo(resOut)
+		frame.fromClient(isClient).writeTo(resOut)
 		
 		bufferedAmount -= frame.payload.size
 	}
@@ -138,8 +119,9 @@ internal class WebSocketJs : WebSocket {
 		connect(url, protocols)
 		connected = true
 		return this
-   }
-
+	}
+	
+	override Void	read()		{ }
 	native 			Void		connect(Uri url, Str[]? protocols)
 	native override ReadyState	readyState()
 	native override Int 		bufferedAmount()

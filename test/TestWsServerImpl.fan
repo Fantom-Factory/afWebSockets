@@ -10,7 +10,7 @@ internal class TestWsServerImpl : WsTest {
 	override Void setup() {
 		wsReq		= WsReqTestImpl()
 		wsRes		= WsResTestImpl()
-		webSocket 	= WebSocketFan(null).service(``, wsReq.in, wsRes.out)
+		webSocket 	= WebSocketFan(null).connect(``, wsReq.in, wsRes.out)
 		resOutBuf	= wsRes.buf
 	}
 

@@ -1,5 +1,6 @@
 using web::WebReq
 using web::WebRes
+using web::WebClient
 
 internal const class WsProtocol {
 	private static const Log 		log 		:= WsProtocol#.pod.log
@@ -60,6 +61,28 @@ internal const class WsProtocol {
 		return true
 	}
 	
+	Void shakeHandsWithServer(WebClient c, Str[]? protocols) {
+		
+		// TODO: give better handshake messages
+		key := Buf.random(16).toBase64
+		c.reqMethod								= "GET"
+		c.reqHeaders["Upgrade"]					= "websocket"
+		c.reqHeaders["Connection"]				= "Upgrade"
+		c.reqHeaders["Sec-WebSocket-Key"]		= key
+		c.reqHeaders["Sec-WebSocket-Version"]	= 13.toStr
+		if (protocols != null)
+			c.reqHeaders["Sec-WebSocket-Protocol"]	= protocols.join(", ")
+		c.writeReq
+		
+		c.readRes
+		if (c.resCode != 101)									throw IOErr("Bad HTTP response $c.resCode $c.resPhrase")
+		if (c.resHeaders["Upgrade"]    != "websocket")			throw IOErr("Invalid Upgrade header")
+		if (c.resHeaders["Connection"] != "Upgrade")			throw IOErr("Invalid Connection header")
+		digest		:= c.resHeaders["Sec-WebSocket-Accept"] ?:	throw IOErr("Missing Sec-WebSocket-Accept header")
+		secDigest	:= Buf().print(key).print("258EAFA5-E914-47DA-95CA-C5AB0DC85B11").toDigest("SHA-1").toBase64
+		if (secDigest != digest) 								throw IOErr("Mismatch Sec-WebSocket-Accept")
+	}
+	
 	Void process(WebSocketFan webSocket) {
 		try {
 			webSocket.onOpen?.call()
@@ -71,7 +94,7 @@ internal const class WsProtocol {
 				if (frame == null) 
 					throw CloseFrameErr(CloseCodes.abnormalClosure, CloseMsgs.abnormalClosure, false)
 				
-				if (!frame.maskFrame)
+				if (frame.maskFrame == webSocket.isClient)
 					throw CloseFrameErr(CloseCodes.protocolError, CloseMsgs.frameNotMasked)
 				
 				if (frame.type == FrameType.ping) {
@@ -117,7 +140,8 @@ internal const class WsProtocol {
 			}
 			
 			closeEvent := CloseEvent { it.wasClean = true; it.code = CloseCodes.internalError; it.reason = CloseMsgs.internalError(err) }
-			webSocket.writeFrame(closeEvent.toFrame)
+			try 	webSocket.writeFrame(closeEvent.toFrame)
+			catch	{ /* meh */ }
 			webSocket.onClose?.call(closeEvent)
 		}
 		

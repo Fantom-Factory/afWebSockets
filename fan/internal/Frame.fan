@@ -47,8 +47,8 @@ internal class Frame {
 		}		
 	}
 
-	Frame fromClient() {
-		this.maskFrame	= true
+	Frame fromClient(Bool isClient := true) {
+		this.maskFrame = isClient
 		return this
 	}
 
