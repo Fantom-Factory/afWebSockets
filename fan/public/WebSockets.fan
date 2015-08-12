@@ -1,6 +1,7 @@
 using afConcurrent
 using concurrent
-using web
+using web::WebReq
+using web::WebRes
 
 // TODO: convert to mixin
 ** (Service)
@@ -52,7 +53,7 @@ const class WebSockets {
 		onUpgrade?.call(req, res, webSocket)
 
 		// connection established
-		res.out.flush		
+		res.out.flush
 		((WebSocketFanImpl) webSocket).connect(req.modRel, res.out)
 
 		req.socketOptions.receiveTimeout = socketReadTimeOut

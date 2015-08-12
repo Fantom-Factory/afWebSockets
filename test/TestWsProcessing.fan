@@ -1,4 +1,5 @@
-using web
+using web::WebReq
+using web::WebRes
 
 internal class TestWsProcessing : WsTest {
 

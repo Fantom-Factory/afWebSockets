@@ -5,22 +5,18 @@ using gfx
 class WebSockExample {
 
 	Void main() {
-
-		webSock := WebSocket(`http://localhost:8069/`)
+		webSock := WebSocket(`ws://localhost:8069/ws`)
 		convBox := Text { text = "The conversation:\n"; multiLine = true; editable = false }
 		textBox := Text { text = "Say something!" }
 		sendMsg := |Event e| {
-			echo("sending ws msg")
 			webSock.sendText(textBox.text)
 			textBox.text = ""
-			convBox.repaint
 		}
 
 		webSock.onMessage = |MsgEvent msgEnv| {
-			echo("received ws msg")
-			convBox.text = convBox.text + msgEnv.msg + "\n"			
-			convBox.repaint
+			convBox.text += msgEnv.msg + "\n"			
 		}
+
 		textBox.onAction.add(sendMsg)
 
 		Window {

@@ -13,6 +13,7 @@ internal class WsReqTestImpl : WebReq {
 	override WebSession		session		() { (Obj) -1 }
 	override InStream		in			:= buf.in
 	override SocketOptions	socketOptions() { TcpSocket().options }
+	override TcpSocket 		socket()	{ throw Err() } 
 	
 	new make() { 
 		headers["Host"] 					= "localhost:8070" 

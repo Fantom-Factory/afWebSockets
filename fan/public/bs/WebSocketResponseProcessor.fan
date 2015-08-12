@@ -1,6 +1,7 @@
 using afIoc
 using afBedSheet
-using web
+using web::WebReq
+using web::WebRes
 using concurrent
 
 internal const class WebSocketResponseProcessor : ResponseProcessor {
