@@ -1,5 +1,6 @@
 
 ** Sent on a `WebSocket` message event.
+@Js
 const class MsgEvent {
 	const Str msg
 	

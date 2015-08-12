@@ -60,7 +60,7 @@ internal const class WsProtocol {
 		return true
 	}
 	
-	Void process(WebSocket webSocket, InStream reqIn, OutStream resOut) {
+	Void process(WebSocketFanImpl webSocket, InStream reqIn, OutStream resOut) {
 		try {
 			webSocket.onOpen?.call()
 			

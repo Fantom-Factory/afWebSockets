@@ -53,7 +53,7 @@ const class WebSockets {
 
 		// connection established
 		res.out.flush		
-		webSocket._attach(WsAttachment(req.modRel, res.out))
+		((WebSocketFanImpl) webSocket).connect(req.modRel, res.out)
 
 		req.socketOptions.receiveTimeout = socketReadTimeOut
 

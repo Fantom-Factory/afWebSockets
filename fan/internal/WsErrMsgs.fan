@@ -1,4 +1,5 @@
 
+@Js
 internal mixin WsErrMsgs {
 	
 	static Str handshakeWrongHttpVersion(Version httpVersion) {
@@ -43,5 +44,13 @@ internal mixin WsErrMsgs {
 
 	static Str wsNotAttached() {
 		"WebSocket has not been attached to a HTTP request!"
+	}
+
+	static Str ctorServerOnly() {
+		"This WebSocket ctor may only be used on the server"
+	}
+
+	static Str ctorClientOnly() {
+		"This WebSocket ctor may only be used in a Javascript runtime"
 	}
 }
