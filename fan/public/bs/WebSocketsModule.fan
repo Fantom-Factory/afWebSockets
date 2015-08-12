@@ -6,7 +6,9 @@ internal class WebSocketsModule {
 	
 	@Build
 	static WebSockets buildWebSockets(ActorPools actorPools) {
-		WebSockets(actorPools["afBedSheet.webSockets"])
+		WebSockets(actorPools["afBedSheet.webSockets"]) {
+			it.socketReadTimeOut = 4min
+		}
 	}
 	
 	@Contribute { serviceType=ResponseProcessors# }

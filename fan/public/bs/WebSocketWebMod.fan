@@ -7,7 +7,7 @@ const class WebSocketWebMod : WebMod {
 	private const WebSockets	webSockets	:= WebSockets(ActorPool())
 	
 	virtual WebSocket makeWebSocket() {
-		WebSocket()
+		WebSocket.make()
 	}
 	
 	override Void onGet() {		

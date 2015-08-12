@@ -10,5 +10,4 @@ internal class AppModule {
 		conf.add(Route(`/`, 	AppHandler#indexPage))
 		conf.add(Route(`/ws`,	AppHandler#goGoWebSocket))
 	}
-
 }

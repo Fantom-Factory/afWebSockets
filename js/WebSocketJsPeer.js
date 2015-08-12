@@ -1,12 +1,12 @@
 
-fan.afWebSockets.WebSocketJsImplPeer = fan.sys.Obj.$extend(fan.sys.Obj)
-fan.afWebSockets.WebSocketJsImplPeer.prototype.$ctor = function(self) { }
+fan.afWebSockets.WebSocketJsPeer = fan.sys.Obj.$extend(fan.sys.Obj)
+fan.afWebSockets.WebSocketJsPeer.prototype.$ctor = function(self) { }
 
-fan.afWebSockets.WebSocketJsImplPeer.nextId = 0;
-fan.afWebSockets.WebSocketJsImplPeer.prototype.connect = function(self, url, protocols) {
-	var paddedId = fan.sys.Str.padl(fan.afWebSockets.WebSocketJsImplPeer.nextId.toString(), 4, 48);
+fan.afWebSockets.WebSocketJsPeer.nextId = 0;
+fan.afWebSockets.WebSocketJsPeer.prototype.connect = function(self, url, protocols) {
+	var paddedId = fan.sys.Str.padl(fan.afWebSockets.WebSocketJsPeer.nextId.toString(), 4, 48);
 	self.id$(fan.sys.Uri.fromStr("afWebSocket:" + paddedId));
-	fan.afWebSockets.WebSocketJsImplPeer.nextId++;
+	fan.afWebSockets.WebSocketJsPeer.nextId++;
 
 	// in Chrome you can't pass 'null' or 'undefined' as a protocol - it gets converted to a str and sent up!
 	self.webSocket = protocols ? new WebSocket(url.toStr(), protocols.m_values) : new WebSocket(url.toStr());
@@ -57,22 +57,22 @@ fan.afWebSockets.WebSocketJsImplPeer.prototype.connect = function(self, url, pro
 	};
 }
 
-fan.afWebSockets.WebSocketJsImplPeer.prototype.sendText = function(self, data) {
+fan.afWebSockets.WebSocketJsPeer.prototype.sendText = function(self, data) {
 	self.webSocket.send(data);
 	console.log("sent data")
 }
 
-fan.afWebSockets.WebSocketJsImplPeer.prototype.close = function(self, code, reason) {
+fan.afWebSockets.WebSocketJsPeer.prototype.close = function(self, code, reason) {
 	if (code   === undefined) code   = fan.sys.ObjUtil.coerce(1000, fan.sys.Int.$type.toNullable());
 	if (reason === undefined) reason = null;
 	self.webSocket.close(code, reason);
 }
 
-fan.afWebSockets.WebSocketJsImplPeer.prototype.bufferedAmount = function(self) {
+fan.afWebSockets.WebSocketJsPeer.prototype.bufferedAmount = function(self) {
 	return self.webSocket.bufferedAmount;
 }
 
-fan.afWebSockets.WebSocketJsImplPeer.prototype.readyState = function(self) {
+fan.afWebSockets.WebSocketJsPeer.prototype.readyState = function(self) {
 	var readyState = self.webSocket.readyState;
 	return fan.afWebSockets.ReadyState.m_vals.get(readyState);
 }

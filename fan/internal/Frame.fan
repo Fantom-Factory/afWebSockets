@@ -94,8 +94,8 @@ internal class Frame {
 			out.writeI2(size8)
 
 		if (maskFrame) {
-			maskBuf := Buf(4).writeI4(Int.random(0..<2.pow(4*8)))
-			out.writeBuf(maskBuf.flip)
+			maskBuf := Buf.random(4)
+			out.writeBuf(maskBuf)
 			payload.size.times |i| {
 				j := maskBuf[i.mod(4)]
 				out.write(payload[i].xor(j))

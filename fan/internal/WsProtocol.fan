@@ -5,7 +5,7 @@ internal const class WsProtocol {
 	private static const Log 		log 		:= WsProtocol#.pod.log
 	private static const Version	httpVer11	:= Version("1.1")
 
-	Bool handshake(WebReq req, WebRes res, Str? allowedOrigins := null) {
+	Bool shakeHandsWithClient(WebReq req, WebRes res, Str[]? allowedOrigins) {
 		if (req.version < httpVer11)
 			throw WebSocketErr(WsErrMsgs.handshakeWrongHttpVersion(req.version))
 		
@@ -41,7 +41,7 @@ internal const class WsProtocol {
 			origin := req.headers["Origin"]
 			if (origin == null)
 				throw WebSocketErr(WsErrMsgs.handshakeOriginHeaderNotFound(req.headers))
-			originGlobs := (Regex[]) allowedOrigins.split(',').map { Regex.glob(it) }
+			originGlobs := (Regex[]) allowedOrigins.map { Regex.glob(it) }
 			if (!originGlobs.any |domain| { domain.matches(origin) }) {
 				log.warn(WsLogMsgs.handshakeOriginIsNotAllowed(origin, allowedOrigins))
 				res.statusCode = 403
@@ -60,13 +60,13 @@ internal const class WsProtocol {
 		return true
 	}
 	
-	Void process(WebSocketFanImpl webSocket, InStream reqIn, OutStream resOut) {
+	Void process(WebSocketFan webSocket) {
 		try {
 			webSocket.onOpen?.call()
 			
 			while (webSocket.readyState < ReadyState.closing) {
 				
-				frame 	:= Frame.readFrom(reqIn)
+				frame 	:= webSocket.readFrame
 				
 				if (frame == null) 
 					throw CloseFrameErr(CloseCodes.abnormalClosure, CloseMsgs.abnormalClosure, false)
@@ -75,7 +75,7 @@ internal const class WsProtocol {
 					throw CloseFrameErr(CloseCodes.protocolError, CloseMsgs.frameNotMasked)
 				
 				if (frame.type == FrameType.ping) {
-					Frame.makePongFrame.writeTo(resOut)
+					webSocket.writeFrame(Frame.makePongFrame)
 					continue
 				}
 
@@ -104,7 +104,7 @@ internal const class WsProtocol {
 		} catch (CloseFrameErr err) {
 			webSocket.readyState = ReadyState.closing
 			if (err.closeEvent.wasClean)
-				err.closeEvent.writeTo(resOut)
+				webSocket.writeFrame(err.closeEvent.toFrame)
 			webSocket.onClose?.call(err.closeEvent)
 			
 		} catch (Err err) {
@@ -117,7 +117,7 @@ internal const class WsProtocol {
 			}
 			
 			closeEvent := CloseEvent { it.wasClean = true; it.code = CloseCodes.internalError; it.reason = CloseMsgs.internalError(err) }
-			closeEvent.writeTo(resOut)
+			webSocket.writeFrame(closeEvent.toFrame)
 			webSocket.onClose?.call(closeEvent)
 		}
 		

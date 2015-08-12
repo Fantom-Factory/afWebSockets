@@ -4,13 +4,13 @@ internal class TestWsServerImpl : WsTest {
 
 	WsReqTestImpl?			wsReq
 	WsResTestImpl? 			wsRes
-	WebSocketFanImpl?		webSocket
+	WebSocketFan?			webSocket
 	Buf?					resOutBuf
 	
 	override Void setup() {
 		wsReq		= WsReqTestImpl()
 		wsRes		= WsResTestImpl()
-		webSocket 	= WebSocketFanImpl().connect(``, wsRes.out)
+		webSocket 	= WebSocketFan(null).service(``, wsReq.in, wsRes.out)
 		resOutBuf	= wsRes.buf
 	}
 
@@ -30,9 +30,8 @@ internal class TestWsServerImpl : WsTest {
 		webSocket.sendText("Hello!")
 		frame := Frame.readFrom(resOutBuf.flip.in)
 		
-		verifyEq(webSocket.bufferedAmount, 6)
-		verifyEq(resOutBuf.size, 0)
-		verifyNull(frame)
+		verifyEq(webSocket.bufferedAmount, 0)
+		verifyEq(frame.payloadAsStr, "Hello!")
 	}
 
 	Void testSendWhenClosed() {

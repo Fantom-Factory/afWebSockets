@@ -10,7 +10,7 @@ internal const class AppHandler {
 	new make(|This|in) { in(this) }
 	
 	WebSocket goGoWebSocket() {
-		WebSocket() {
+		WebSocket.make() {
 			ws := it
 			onMessage = |MsgEvent me| { 
 				webSockets.broadcast("${ws.id} says, '${me.msg}'")

@@ -5,7 +5,7 @@ using gfx
 class WebSockExample {
 
 	Void main() {
-		webSock := WebSocket(`ws://localhost:8069/ws`)
+		webSock := WebSocket.make()
 		convBox := Text { text = "The conversation:\n"; multiLine = true; editable = false }
 		textBox := Text { text = "Say something!" }
 		sendMsg := |Event e| {
@@ -19,7 +19,7 @@ class WebSockExample {
 
 		textBox.onAction.add(sendMsg)
 
-		Window {
+		window := Window {
 			InsetPane {
 				EdgePane {
 					center	= convBox
@@ -29,6 +29,12 @@ class WebSockExample {
 					}
 				},
 			},
-        }.open
+        }
+
+		window.onOpen {
+			webSock.open(`ws://localhost:8069/ws`)
+        }
+		
+		window.open
 	}
 }

@@ -42,8 +42,8 @@ internal mixin WsErrMsgs {
 		"Request does not contain a 'Sec-WebSocket-Key' header - $headers"
 	}
 
-	static Str wsNotAttached() {
-		"WebSocket has not been attached to a HTTP request!"
+	static Str wsNotConnected() {
+		"WebSocket has not been connected to a HTTP request!"
 	}
 
 	static Str ctorServerOnly() {

@@ -24,8 +24,8 @@ const class CloseEvent {
 
 	internal new make(|This|in) { in(this) }
 	
-	internal Void writeTo(OutStream resOut) {
-		Frame.makeCloseFrame(code, reason).writeTo(resOut)
+	internal Frame toFrame() {
+		Frame.makeCloseFrame(code, reason)
 	}
 	
 	@NoDoc

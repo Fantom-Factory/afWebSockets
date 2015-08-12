@@ -3,15 +3,12 @@
 ** 
 ** To use, create an instance and pass to `WebSockets` to be serviced.
 @Js
-mixin WebSocket {
+abstract class WebSocket {
 	
-	** A unique ID for this 'WebSocket' instance. Use to retrieve instances from the 'WebSockets' instance.
-	** 
-	** This field is only meaningful on the server, and is unused in Javascript.
+	** A unique ID for this 'WebSocket' instance. Use to retrieve instances from 'WebSockets'.
 	abstract Uri id()
 
-	** The URI the WebSocket is connected to.
-	** Only available once connected.
+	** The URL the WebSocket is connected to.
 	abstract Uri url()
 	
 	** Returns the state of the connection.
@@ -27,35 +24,31 @@ mixin WebSocket {
 	abstract Int bufferedAmount()
 
 	** Hook for when the WebSocket is connected. 
-	abstract |->|? 			onOpen
+	|->|? 			onOpen
 	
 	** Hook for when a message is received. 
-	abstract |MsgEvent|? 	onMessage
+	|MsgEvent|? 	onMessage
 	
 	** Hook for when an error occurs. 
-	** Also called should the socket timeout
-	abstract |Err|?			onError
+	** Also called should the socket time out
+	|Err|?			onError
 	
 	** Hook for when an WebSocket closes. 
-	abstract |CloseEvent|?	onClose
+	|CloseEvent|?	onClose
+
+	new makeInternal() {}
 	
-	** The ctor to use on the server.
-	static new makeServer() {
+	static new make(Str[]? allowedOrigins := null) {
 		if (Env.cur.runtime == "js")
-			throw Err(WsErrMsgs.ctorServerOnly)
-		return WebSocketFanImpl()
-	}
-	
-	** The ctor to use from a Javascript client.
-	static new makeClient(Uri url, Str[]? protocols := null) {
-		if (Env.cur.runtime != "js")
-			throw Err(WsErrMsgs.ctorClientOnly)
-		return WebSocketJsImpl(url, protocols)
+			return WebSocketJs()
+		return WebSocketFan(allowedOrigins)
 	}
 
 	// TODO: have sendBinary(Buf data)
 	** Transmits data through the WebSocket connection.
 	abstract Void sendText(Str data)
+	
+	abstract This open(Uri url, Str[]? protocols := null)
 	
 	** Closes the WebSocket connection.
 	** Does nothing if the connection is already closed or closing.
@@ -80,4 +73,3 @@ enum class ReadyState {
 	** The connection has been closed or could not be opened.
 	closed;
 }
-
