@@ -16,7 +16,7 @@ internal class TestWsProcessing : WsTest {
 	override Void setup() {
 		wsReq		= WsReqTestImpl()
 		wsRes		= WsResTestImpl()
-		webSocket 	= WebSocketFanImpl().connect(``, wsRes.out)
+		webSocket 	= WebSocketFan(null).service(``, wsReq.in, wsRes.out)
 		wsCore		= WsProtocol()
 		reqInBuf	= wsReq.buf
 		webSocket.onOpen = |->| { openEvent = true }
@@ -27,7 +27,7 @@ internal class TestWsProcessing : WsTest {
 	}
 
 	Void testOnOpenCallback() {
-		wsCore.process(webSocket, wsReq.in, wsRes.out)		
+		wsCore.process(webSocket)		
 		verify(openEvent)
 	}
 
@@ -35,7 +35,7 @@ internal class TestWsProcessing : WsTest {
 		Frame.makeTextFrame("Hello Peeps!").fromClient.writeTo(reqInBuf.out)
 		reqInBuf.flip
 		
-		wsCore.process(webSocket, wsReq.in, wsRes.out)		
+		wsCore.process(webSocket)		
 		verifyEq(msgEvent.msg, "Hello Peeps!")
 	}
 
@@ -43,7 +43,7 @@ internal class TestWsProcessing : WsTest {
 		Frame.makeCloseFrame(CloseCodes.normalClosure, CloseMsgs.normalClosure).fromClient.writeTo(reqInBuf.out)
 		reqInBuf.flip
 		
-		wsCore.process(webSocket, wsReq.in, wsRes.out)
+		wsCore.process(webSocket)
 		verifyEq(closeEvent.code, 	CloseCodes.normalClosure)
 		verifyEq(closeEvent.reason, CloseMsgs.normalClosure)
 	}
@@ -53,7 +53,7 @@ internal class TestWsProcessing : WsTest {
 		Frame.makeTextFrame("Hello!").fromClient.writeTo(reqInBuf.out)
 		reqInBuf.flip
 
-		wsCore.process(webSocket, wsReq.in, wsRes.out)
+		wsCore.process(webSocket)
 
 		verifyEq(closeEvent.code, 	CloseCodes.internalError)
 		verifyEq(closeEvent.reason, CloseMsgs.internalError(Err("Boobies")))
@@ -63,7 +63,7 @@ internal class TestWsProcessing : WsTest {
 		Frame.makeCloseFrame(69, "Emma").writeTo(reqInBuf.out)
 		reqInBuf.flip
 
-		wsCore.process(webSocket, wsReq.in, wsRes.out)
+		wsCore.process(webSocket)
 		verifyNull(msgEvent)
 		verifyEq(closeEvent.wasClean, 	true)
 		verifyEq(closeEvent.code, 		CloseCodes.protocolError)
@@ -74,7 +74,7 @@ internal class TestWsProcessing : WsTest {
 		Frame.makeTextFrame("wotever") { it.type = FrameType.binary }.fromClient.writeTo(reqInBuf.out)
 		reqInBuf.flip
 
-		wsCore.process(webSocket, wsReq.in, wsRes.out)
+		wsCore.process(webSocket)
 		verifyNull(msgEvent)
 		verifyEq(closeEvent.wasClean, 	true)
 		verifyEq(closeEvent.code, 		CloseCodes.unsupportedData)
@@ -85,7 +85,7 @@ internal class TestWsProcessing : WsTest {
 		Frame.makeCloseFrame(69, "Emma").fromClient.writeTo(reqInBuf.out)
 		reqInBuf.flip
 
-		wsCore.process(webSocket, wsReq.in, wsRes.out)
+		wsCore.process(webSocket)
 		frame := Frame.readFrom(wsRes.buf.flip.in)
 		closeCode 	:= frame.payload.readU2
 		closeReason	:= frame.payloadAsStr
@@ -98,7 +98,7 @@ internal class TestWsProcessing : WsTest {
 	}
 
 	Void testClientSocketReqInDisconnect() {
-		wsCore.process(webSocket, wsReq.in, wsRes.out)
+		wsCore.process(webSocket)
 		frame := Frame.readFrom(wsRes.buf.flip.in)
 		
 		verifyEq(closeEvent.wasClean, 	false)
@@ -111,7 +111,7 @@ internal class TestWsProcessing : WsTest {
 		Frame.makeCloseFrame(69, null).fromClient.writeTo(reqInBuf.out)
 		reqInBuf.flip
 
-		wsCore.process(webSocket, wsReq.in, wsRes.out)
+		wsCore.process(webSocket)
 		
 		verifyEq(closeEvent.wasClean, 	true)
 		verifyEq(closeEvent.code, 		69)
@@ -122,7 +122,7 @@ internal class TestWsProcessing : WsTest {
 		Frame.makeCloseFrame(null, "Emma").fromClient.writeTo(reqInBuf.out)
 		reqInBuf.flip
 
-		wsCore.process(webSocket, wsReq.in, wsRes.out)
+		wsCore.process(webSocket)
 		
 		verifyEq(closeEvent.wasClean, 	true)
 		verifyEq(closeEvent.code, 		CloseCodes.noStatusRcvd)
@@ -134,7 +134,7 @@ internal class TestWsProcessing : WsTest {
 		Frame.makeTextFrame("Hello!").fromClient.writeTo(reqInBuf.out)
 		reqInBuf.flip
 
-		wsCore.process(webSocket, wsReq.in, wsRes.out)
+		wsCore.process(webSocket)
 		frame := Frame.readFrom(wsRes.buf.flip.in)
 		
 		verifyEq(frame.payload.readU2, 	CloseCodes.internalError)
@@ -146,7 +146,7 @@ internal class TestWsProcessing : WsTest {
 		Frame.makeCloseFrame(CloseCodes.normalClosure, CloseMsgs.normalClosure).fromClient.writeTo(reqInBuf.out)
 		reqInBuf.flip
 
-		wsCore.process(webSocket, wsReq.in, wsRes.out)
+		wsCore.process(webSocket)
 		
 		verifyNull(msgEvent)
 		verifyNull(errEvent)
@@ -159,7 +159,7 @@ internal class TestWsProcessing : WsTest {
 		Frame.makeCloseFrame(CloseCodes.normalClosure, CloseMsgs.normalClosure).fromClient.writeTo(reqInBuf.out)
 		reqInBuf.flip
 
-		wsCore.process(webSocket, wsReq.in, wsRes.out)
+		wsCore.process(webSocket)
 		frame := Frame.readFrom(wsRes.buf.flip.in)
 		
 		verifyNull(msgEvent)
