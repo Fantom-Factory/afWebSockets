@@ -20,9 +20,8 @@ internal class WebSocketFanImpl : WebSocket {
 		}
 	}
 	
-	override ReadyState readyState
-	override Int 		bufferedAmount
-
+	override ReadyState 	readyState
+	override Int 			bufferedAmount
 	override |->|? 			onOpen
 	override |MsgEvent|? 	onMessage
 	override |Err|?			onError
@@ -78,14 +77,21 @@ internal class WebSocketJsImpl : WebSocket {
 	override |Err|?			onError
 	override |CloseEvent|?	onClose
 	
-	native override ReadyState	readyState
-	native override Int 		bufferedAmount
+	native override ReadyState	readyState()
+	native override Int 		bufferedAmount()
 
 	new make(Uri url, Str[]? protocols) {
+		if (url.scheme != "ws" && url.scheme != "wss")
+			throw ArgErr(WsErrMsgs.wrongWsScheme(url))
+
 		echo("JS IMPL")
 		this.id				= `afWebSocket:null`
 		this.url			= url
 		connect(url, protocols)
+		
+		echo("my sisddsd $id")
+		echo("buggered: $bufferedAmount")
+		echo("readys: $readyState")
 	}
 	
 	native 			Void connect(Uri url, Str[]? protocols)

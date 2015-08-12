@@ -8,6 +8,7 @@ const class MsgEvent {
 }
 
 ** Sent on a `WebSocket` close event.
+@Js
 const class CloseEvent {
 	
 	** Returns 'true' if the connection was closed cleanly.

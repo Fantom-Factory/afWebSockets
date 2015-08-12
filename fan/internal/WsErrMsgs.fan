@@ -53,4 +53,8 @@ internal mixin WsErrMsgs {
 	static Str ctorClientOnly() {
 		"This WebSocket ctor may only be used in a Javascript runtime"
 	}
+
+	static Str wrongWsScheme(Uri url) {
+		"WebSocket URLs must have a 'ws' or 'wss' scheme - $url"
+	}
 }

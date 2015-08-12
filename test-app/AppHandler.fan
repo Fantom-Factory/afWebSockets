@@ -1,25 +1,18 @@
 using afIoc
-using afBedSheet
+using afBedSheet::Text
 using afDuvet::HtmlInjector
 
-internal class AppHandler {
-	
-	@Inject private const WebSockets webSockets
-	@Inject private const HtmlInjector htmlInjector
+internal const class AppHandler {
+
+	@Inject private const WebSockets	webSockets
+	@Inject private const HtmlInjector	htmlInjector
 	
 	new make(|This|in) { in(this) }
 	
 	WebSocket goGoWebSocket() {
 		WebSocket() {
 			ws := it
-			onOpen = |->| { 
-				Env.cur.err.printLine("ES: onOpen")
-			}
-			onClose = |->| { 
-				Env.cur.err.printLine("ES: onClose")
-			}
 			onMessage = |MsgEvent me| { 
-				Env.cur.err.printLine("ES: onMsg - $me.msg")
 				webSockets.broadcast("${ws.id} says, '${me.msg}'")
 			}
 		}
@@ -31,7 +24,7 @@ internal class AppHandler {
 			"<!doctype>
 			 <html>
 			 <head>
-			 	<title>WebSocket Example</title>
+			 	<title>WebSocket ChatBox Example</title>
 			 </head>
 			 <body>
 			 </body>
