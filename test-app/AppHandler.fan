@@ -1,8 +1,11 @@
 using afIoc
+using afBedSheet
+using afDuvet::HtmlInjector
 
 internal class AppHandler {
 	
 	@Inject private const WebSockets webSockets
+	@Inject private const HtmlInjector htmlInjector
 	
 	new make(|This|in) { in(this) }
 	
@@ -21,5 +24,19 @@ internal class AppHandler {
 			}
 		}
 	}
-	
+
+	Text indexPage() {
+		htmlInjector.injectFantomMethod(WebSockExample#main)
+		return Text.fromHtml(
+			"<!doctype>
+			 <html>
+			 <head>
+			 	<title>WebSocket Example</title>
+			 </head>
+			 <body>
+			 </body>
+			 </html>")
+	}
 }
+
+

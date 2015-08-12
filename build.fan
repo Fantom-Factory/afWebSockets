@@ -23,9 +23,13 @@ class Build : BuildPod {
 			// ---- Testing ----
 			"afIoc      2.0.10 - 2.1",
 			"afBedSheet 1.4.14 - 1.4",
+			"fwt 1.0",
+			"gfx 1.0",
+			"afDuvet 1.0.12 - 1.0"
 		]
 
 		srcDirs = [`test-app/`, `test/`, `fan/`, `fan/public/`, `fan/public/bs/`, `fan/internal/`]
 		resDirs = [`doc/`]
+		jsDirs 	= [`js/`]
 	}
 }
