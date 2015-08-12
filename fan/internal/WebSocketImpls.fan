@@ -62,7 +62,6 @@ internal class WebSocketFan : WebSocket {
 	}
 	
 	override Void sendText(Str data) {
-		echo("sending data")
 		writeFrame(Frame(data))
 	}
 	

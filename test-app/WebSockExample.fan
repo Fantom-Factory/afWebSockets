@@ -20,6 +20,7 @@ class WebSockExample {
 		textBox.onAction.add(sendMsg)
 
 		window := Window {
+			title = "WebSocket ChatBox Example"
 			InsetPane {
 				EdgePane {
 					center	= convBox
