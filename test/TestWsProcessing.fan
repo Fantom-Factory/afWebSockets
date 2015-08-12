@@ -16,14 +16,13 @@ internal class TestWsProcessing : WsTest {
 	override Void setup() {
 		wsReq		= WsReqTestImpl()
 		wsRes		= WsResTestImpl()
-		webSocket 	= WebSocketFan(null).service(``, wsReq.in, wsRes.out)
+		webSocket 	= WebSocketFan(null).connect(``, wsReq.in, wsRes.out)
 		wsCore		= WsProtocol()
 		reqInBuf	= wsReq.buf
-		webSocket.onOpen = |->| { openEvent = true }
-		webSocket.onMessage = |MsgEvent me| { msgEvent = me }
-		webSocket.onClose = |CloseEvent ce| { closeEvent = ce }
-		webSocket.onError = |Err err| { errEvent = err }
-		
+		webSocket.onOpen	= |->|				{ openEvent  = true }
+		webSocket.onMessage = |MsgEvent me|		{ msgEvent   = me   }
+		webSocket.onClose	= |CloseEvent ce|	{ closeEvent = ce   }
+		webSocket.onError	= |Err err|			{ errEvent   = err  }
 	}
 
 	Void testOnOpenCallback() {

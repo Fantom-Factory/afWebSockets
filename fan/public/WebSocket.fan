@@ -36,7 +36,8 @@ abstract class WebSocket {
 	** Hook for when an WebSocket closes. 
 	|CloseEvent|?	onClose
 
-	new makeInternal() {}
+	@NoDoc
+	protected new makeDefault() { }
 	
 	static new make(Str[]? allowedOrigins := null) {
 		if (Env.cur.runtime == "js")
@@ -44,10 +45,6 @@ abstract class WebSocket {
 		return WebSocketFan(allowedOrigins)
 	}
 
-	// TODO: have sendBinary(Buf data)
-	** Transmits data through the WebSocket connection.
-	abstract Void sendText(Str data)
-	
 	abstract This open(Uri url, Str[]? protocols := null)
 	
 	** Closes the WebSocket connection.
@@ -56,6 +53,13 @@ abstract class WebSocket {
 	** The close code defaults to '1000 - Normal Closure' - see [RFC 6455 sec. 7.4.1]`https://tools.ietf.org/html/rfc6455#section-7.4.1` 
 	** for a list of valid close codes.
 	abstract Void close(Int? code := 1000, Str? reason := null)
+
+	abstract Void read()
+	
+	// TODO: have sendBinary(Buf data)
+	** Transmits data through the WebSocket connection.
+	abstract Void sendText(Str data)
+	
 }
 
 ** The state of the WebSocket connection.
