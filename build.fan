@@ -8,8 +8,13 @@ class Build : BuildPod {
 		version = Version([0,0,1])
 
 		meta	= [	
-			"proj.name"		: "Web Sockets",
+			"proj.name"		: "WebSockets",
+			"afIoc.module"	: "afBedSheet::WebSocketsModuleV1",
 			"repo.private"	: "true",
+		]
+
+		index = [
+			"afIoc.module"	: "afBedSheet::WebSocketsModuleV1" 
 		]
 
 		depends = [
@@ -28,7 +33,7 @@ class Build : BuildPod {
 			"afDuvet 1.0.12 - 1.0"
 		]
 
-		srcDirs = [`test-app/`, `test/`, `fan/`, `fan/public/`, `fan/public/bs/`, `fan/internal/`]
+		srcDirs = [`test-app/`, `test/`, `fan/`, `fan/public/`, `fan/internal/`]
 		resDirs = [`doc/`]
 		jsDirs 	= [`js/`]
 	}

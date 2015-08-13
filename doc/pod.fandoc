@@ -1,127 +1,16 @@
-Overview [#overview]
-********************
-'afWebsockets' is a
-[Fantom]`http://fantom.org/` implementaion of
-[HTTP WebSockets]`http://tools.ietf.org/html/rfc6455` for the
+Overview
+********
+'WebSockets' is a faithful implementaion of the [W3C WebSocket API]`http://www.w3.org/TR/websockets/` and adheres to [RFC 6455]`http://tools.ietf.org/html/rfc6455`.
+
+ for the
 [Wisp]`http://fantom.org/doc/wisp/index.html` web server and
 [afBedSheet]`http://repo.status302.com/doc/afBedSheet/#overview` web application framework.
 
-'afWebsockets' does not currently support WebSocket extensions, protocols, binary messages or frame fragmentation /
-continuations.
+Note that WebSockets does not currently support frame fragmentation or continuations.
 
 
 
-Quick Start [#quickStart]
-*************************
-The following example sends 'Ping!' and 'Pong!' text frames back and forth between the server and a broswer.
+Quick Start
+***********
 
-Run the fantom file (example: '$ fan BedSheetWsDemo.fan') and load the html in a web browser,
-
-*BedSheetWsDemo.fan:*
-pre>
-using afIoc
-using afBedSheet
-using afWebSockets
-using concurrent
-
-class BedSheetApp {
-  Void main() {
-    afBedSheet::Main().main("${AppModule#.qname} 8080".split)
-  }
-}
-
-@SubModule { modules=[WebSocketsModule#] }
-class AppModule {
-  @Contribute
-  static Void contributeRoutes(OrderedConfig conf) {
-    conf.add(Route(`/ws-server`, WebSocketHandler#service))
-  }
-
-  @Contribute { serviceType=WebSocketHandler# }
-  static Void contributeWebSocketMapping(MappedConfig conf) {
-    conf[`/ws-server`] = Handlers#wsServer
-  }
-}
-
-class Handlers {
-  Void wsServer(WebSocket webSocket) {
-    webSocket.onMessage = |MsgEvent me| {
-      echo(me.msg)
-      Actor.sleep(1sec)
-      webSocket.sendText("Pong!")
-    }
-  }
-}
-<pre
-
-*websockets.html:*
-pre>
-<html>
-<head>
-  <title>Web Socket Demo</title>
-  <script type="text/javascript">
-    function WebSocketTest() {
-      var ws = new WebSocket("ws://localhost:8080/ws-server");
-
-      ws.onopen = function() {
-        ws.send("Ping!");
-      };
-
-      ws.onmessage = function (event) {
-        console.info(event.data);
-        setTimeout(function() {
-          ws.send("Ping!");
-        }, 1000);
-      };
-    }
-  </script>
-</head>
-<body>
-  <a href="javascript:WebSocketTest()">Run WebSocket Demo</a>
-</body>
-</html>
-<pre
-
-Or if you prefer to run the demo in a standard [Wisp]`http://fantom.org/doc/wisp/index.html` 'WebMod'...
-
-*WispWsDemo.fan:*
-pre>
-using wisp
-using webmod
-using concurrent
-using afWebSockets
-
-class WispApp {
-  static Void main(Str[] args) {
-    wsMod   := WebSocketWebMod(Handlers#wsHandler)
-    root    := RouteMod { it.routes = ["ws-server": wsMod] }
-
-    WispService { it.port=8080; it.root=root }.start
-    Actor.sleep(Duration.maxVal)
-  }
-}
-
-class Handlers {
-  Void wsHandler(WebSocket webSocket) {
-    webSocket.onMessage = |MsgEvent me| {
-      echo(me.msg)
-      Actor.sleep(1sec)
-      webSocket.sendText("Pong!")
-    }
-  }
-}
-<pre
-
-Usage [#usage]
-**************
-
-Standard Interface
-
-
-Release Notes [#releaseNotes]
-*****************************
-
-v0.0.2 [#v0.0.2]
-----------------
- - New: Preview release.
 
