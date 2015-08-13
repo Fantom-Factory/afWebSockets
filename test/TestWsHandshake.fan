@@ -73,9 +73,9 @@ internal class TestWsHandshake : WsTest {
 		}
 
 		req.headers["Sec-WebSocket-Version"] = "wotever"
-		ok := core.shakeHandsWithClient(req, res, null)
-		verifyFalse(ok)
-		verifyEq(res.statusCode, 400)
+		verifyWsErrMsg(WsErrMsgs.handshakeWsVersionHeaderWrongValue("wotever")) {
+			core.shakeHandsWithClient(req, res, null)
+		}
 		verifyEq(res.headers["Sec-WebSocket-Version"], "13")
 	}
 
@@ -92,8 +92,9 @@ internal class TestWsHandshake : WsTest {
 		}
 		
 		req.headers["Origin"] = "alienfactory.co.uk"
-		ok := core.shakeHandsWithClient(req, res, ["alienfactory.com"])
-		verifyFalse(ok)
+		verifyWsErrMsg(WsErrMsgs.handshakeOriginIsNotAllowed("alienfactory.co.uk", ["alienfactory.com"])) {
+			core.shakeHandsWithClient(req, res, ["alienfactory.com"])
+		}
 		verifyEq(res.statusCode, 403)
 	}
 

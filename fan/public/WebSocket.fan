@@ -1,3 +1,5 @@
+using web::WebReq
+using web::WebRes
 
 ** The main 'WebSocket' class as defined by the [W3C WebSocket API]`http://www.w3.org/TR/websockets/`. 
 ** 
@@ -23,6 +25,8 @@ abstract class WebSocket {
 	** 'send()' method (the number does not reset to zero once the connection closes).
 	abstract Int bufferedAmount()
 
+	Str[]? allowedOrigins
+	
 	** Hook for when the WebSocket is connected. 
 	|->|? 			onOpen
 	
@@ -39,13 +43,15 @@ abstract class WebSocket {
 	@NoDoc
 	protected new makeDefault() { }
 	
-	static new make(Str[]? allowedOrigins := null) {
-		if (Env.cur.runtime == "js")
-			return WebSocketJs()
-		return WebSocketFan(allowedOrigins)
+	static new make() {
+		Env.cur.runtime == "js" ? WebSocketJs() : WebSocketFan()
 	}
 
+	** Throws 'IOErr' should there be something wrong with the upgrade handskake.
 	abstract This open(Uri url, Str[]? protocols := null)
+
+	** Throws 'IOErr' should there be something wrong with the upgrade handskake.
+	abstract This upgrade(WebReq req, WebRes res, Bool flush := true)
 	
 	** Closes the WebSocket connection.
 	** Does nothing if the connection is already closed or closing.

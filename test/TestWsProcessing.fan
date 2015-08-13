@@ -16,7 +16,7 @@ internal class TestWsProcessing : WsTest {
 	override Void setup() {
 		wsReq		= WsReqTestImpl()
 		wsRes		= WsResTestImpl()
-		webSocket 	= WebSocketFan(null).connect(``, wsReq.in, wsRes.out)
+		webSocket 	= WebSocketFan().ready(``, wsReq.in, wsRes.out)
 		wsCore		= WsProtocol()
 		reqInBuf	= wsReq.buf
 		webSocket.onOpen	= |->|				{ openEvent  = true }

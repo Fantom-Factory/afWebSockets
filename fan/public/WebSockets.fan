@@ -5,6 +5,8 @@ using web::WebRes
 
 ** (Service)
 ** The main service for handling 'WebSocket' connections.
+** 
+** If creating a BedApp
 const mixin WebSockets {
 	
 	** The maximum amount of time a websocket blocks for while waiting for a message from the client.
@@ -12,7 +14,7 @@ const mixin WebSockets {
 	** 
 	** Set to 'null' for an infinite timeout - but a word of caution, this then leaves you vulnerable to DOS attacks.
 	**  
-	** This field may be set at given any time (despite being const) but only affects WebSockets connected *after* the change.
+	** This field may be set at any time, but only affects WebSockets connected *after* the change.
 	** 
 	** Defaults to '5min'.
 	abstract Duration? socketReadTimeOut
@@ -20,7 +22,7 @@ const mixin WebSockets {
 	** Hook to allow negotiation of websocket protocols and extensions.
 	** Called after the socket upgrade has been verified but before any response is flushed to the client.
 	** 
-	** This field may be set at given any time (despite being const).
+	** This field may be set at any time.
 	abstract |WebReq, WebRes, WebSocket|? onUpgrade
 	
 	** Creates a 'WebSockets' instance. 
@@ -31,7 +33,7 @@ const mixin WebSockets {
 	** Services the given 'WebSocket'. 
 	** The active HTTP request is upgraded to a WebSocket connection.
 	** This call then enters a read loop and blocks until the WebSocket is closed.
-	abstract Void service(WebReq req, WebRes res, WebSocket webSocket)
+	abstract Void service(WebSocket webSocket, WebReq req, WebRes res)
 
 	** Returns the 'WebSocket' associated with the given ID.
 	** Note that closed WebSockets no longer exist.
@@ -72,15 +74,16 @@ internal const class WebSocketsImpl : WebSockets {
 		f?.call(this)
 	}
 	
-	override Void service(WebReq req, WebRes res, WebSocket webSocket) {
+	override Void service(WebSocket webSocket, WebReq req, WebRes res) {
 		webSocketImpl := (WebSocketFan) webSocket
+
 		try {
-			ok 	:= wsProtocol.shakeHandsWithClient(req, res, webSocketImpl.allowedOrigins)
-			if (!ok) return
+			webSocketImpl.upgrade(req, res, false)
 			
-		} catch (WebSocketErr wsErr) {
+		} catch (IOErr wsErr) {
 			log.warn(wsErr.msg)
-			res.statusCode = 400
+			if (res.statusCode == 200)
+				res.statusCode = 400
 			return
 		}
 
@@ -95,7 +98,7 @@ internal const class WebSocketsImpl : WebSockets {
 		unsafeWs := Unsafe(webSocket)
 		try {
 			webSockets[webSocket.id] = unsafeWs
-			webSocketImpl.connect(req.modRel, req.in, res.out).read
+			webSocket.read
 		} finally {
 			webSockets.remove(unsafeWs)
 		}

@@ -2,7 +2,7 @@
 abstract internal class WsTest : Test {
 	
 	Void verifyWsErrMsg(Str errMsg, |Obj| func) {
-		verifyErrAndMsg(WebSocketErr#, errMsg, func)
+		verifyErrAndMsg(IOErr#, errMsg, func)
 	}
 
 	protected Void verifyErrAndMsg(Type errType, Str errMsg, |Obj| func) {

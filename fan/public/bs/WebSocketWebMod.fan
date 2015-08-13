@@ -11,7 +11,7 @@ const class WebSocketWebMod : WebMod {
 	}
 	
 	override Void onGet() {		
-		webSockets.service(req, res, makeWebSocket)
+		webSockets.service(makeWebSocket, req, res)
 	}
 
 	override Void onStop() {

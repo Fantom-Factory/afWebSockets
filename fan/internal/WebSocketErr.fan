@@ -1,11 +1,5 @@
 
-** As thrown by 'WebSockets'.
-@Js
-const class WebSocketErr : Err {
-	new make(Str msg := "", Err? cause := null) : super(msg, cause) {}	
-}
-
-internal const class CloseFrameErr : Err {
+internal const class CloseFrameErr : IOErr {
 	const CloseEvent closeEvent
 	new make(Int code, Str? reason, Bool wasClean := true) : super("${code}: ${reason}", null) {
 		this.closeEvent = CloseEvent { it.wasClean = wasClean; it.code = code; it.reason = reason }
