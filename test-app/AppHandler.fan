@@ -31,5 +31,3 @@ internal const class AppHandler {
 			 </html>")
 	}
 }
-
-

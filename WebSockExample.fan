@@ -36,7 +36,7 @@ class WebSockExample {
         }
 
 		if (Env.cur.runtime != "js") {
-			// ensure message events are run in the UI thread
+			// ensure event funcs are run in the UI thread
 			safeMess := Unsafe(webSock.onMessage)
 			webSock.onMessage = |MsgEvent msgEnv| {
 				Desktop.callAsync |->| { safeMess.val->call(msgEnv) }

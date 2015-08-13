@@ -38,20 +38,20 @@ internal mixin WsErrMsgs {
 		"Request does not contain an 'Origin' header - $headers"
 	}
 
+	static Str handshakeWsVersionHeaderWrongValue(Str wsVersion) {
+		"Request 'Sec-WebSocket-Version' header should be '13' - $wsVersion"
+	}
+
 	static Str handshakeWsKeyHeaderNotFound(Str:Str headers) {
 		"Request does not contain a 'Sec-WebSocket-Key' header - $headers"
+	}
+	
+	static Str handshakeOriginIsNotAllowed(Str origin, Str[] allowedOrigins) {
+		"Request 'Origin' header '${origin}' does not match allowed origins - $allowedOrigins"
 	}
 
 	static Str wsNotConnected() {
 		"WebSocket has not been connected to a HTTP request!"
-	}
-
-	static Str ctorServerOnly() {
-		"This WebSocket ctor may only be used on the server"
-	}
-
-	static Str ctorClientOnly() {
-		"This WebSocket ctor may only be used in a Javascript runtime"
 	}
 
 	static Str wrongWsScheme(Uri url) {

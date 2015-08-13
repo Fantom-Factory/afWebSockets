@@ -1,3 +1,4 @@
+using web::WebReq
 using web::WebRes
 using web::WebClient
 using concurrent::AtomicInt
@@ -11,7 +12,6 @@ internal class WebSocketFan : WebSocket {
 				private InStream?	reqIn
 				private OutStream?	resOut
 				private Bool 		connected
-						Str[]?		allowedOrigins
 						Bool		isClient
 
 	override Uri 			id
@@ -20,19 +20,16 @@ internal class WebSocketFan : WebSocket {
 
 	override Uri url {
 		get {
-			if (!connected)	throw WebSocketErr(WsErrMsgs.wsNotConnected)
+			if (!connected)	throw IOErr(WsErrMsgs.wsNotConnected)
 			return &url
 		}
 	}
 
-	new make(Str[]? allowedOrigins) {
-		if (Env.cur.runtime == "js")
-			throw Err(WsErrMsgs.ctorServerOnly)
+	new make() {
 		this.id		 		= ("afWebSocket:" + nextId.getAndIncrement.toStr.padl(4, '0')).toUri
 		this.url			= ``
 		this.readyState		= ReadyState.connecting
 		this.bufferedAmount	= 0
-		this.allowedOrigins	= allowedOrigins
 	}
 	
 	override This open(Uri url, Str[]? protocols := null) {
@@ -48,9 +45,14 @@ internal class WebSocketFan : WebSocket {
 		socket := (TcpSocket) WebClient#.field("socket").get(c)
 
 		isClient = true
-		return connect(url, socket.in, socket.out)
+		return ready(url, socket.in, socket.out)
 	}
 	
+	override This upgrade(WebReq req, WebRes res, Bool flush := true) {
+		wsProtocol.shakeHandsWithClient(req, res, allowedOrigins)
+		return ready(req.modRel, req.in, res.out)
+	}
+
 	override Void close(Int? code := 1000, Str? reason := null) {
 		// when the client pongs the close frame back, we'll close the connection
 		readyState = ReadyState.closing
@@ -63,15 +65,6 @@ internal class WebSocketFan : WebSocket {
 	
 	override Void sendText(Str data) {
 		writeFrame(Frame(data))
-	}
-	
-	This connect(Uri url, InStream reqIn, OutStream resOut) {
-		this.url 		= url
-		this.reqIn		= reqIn
-		this.resOut		= resOut
-		this.readyState = ReadyState.open
-		connected 		= true
-		return this
 	}
 
 	Frame? readFrame() {
@@ -88,6 +81,15 @@ internal class WebSocketFan : WebSocket {
 		
 		bufferedAmount -= frame.payload.size
 	}
+	
+	This ready(Uri url, InStream reqIn, OutStream resOut) {
+		this.url 		= url
+		this.reqIn		= reqIn
+		this.resOut		= resOut
+		this.readyState = ReadyState.open
+		connected 		= true
+		return this
+	}
 
 	@NoDoc
 	override Str toStr() {
@@ -101,7 +103,7 @@ internal class WebSocketJs : WebSocket {
 	override Uri id
 	override Uri url {
 		get {
-			if (!connected)	throw WebSocketErr(WsErrMsgs.wsNotConnected)
+			if (!connected)	throw IOErr(WsErrMsgs.wsNotConnected)
 			return &url
 		}
 	}
@@ -120,6 +122,9 @@ internal class WebSocketJs : WebSocket {
 		return this
 	}
 	
+	override This upgrade(WebReq req, WebRes res, Bool flush := true) {
+		throw UnsupportedErr("Only server side WebSockets may be upgraded")
+	}
 	override Void	read()		{ }
 	native 			Void		connect(Uri url, Str[]? protocols)
 	native override ReadyState	readyState()

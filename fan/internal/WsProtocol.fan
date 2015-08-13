@@ -8,45 +8,42 @@ internal const class WsProtocol {
 
 	Bool shakeHandsWithClient(WebReq req, WebRes res, Str[]? allowedOrigins) {
 		if (req.version < httpVer11)
-			throw WebSocketErr(WsErrMsgs.handshakeWrongHttpVersion(req.version))
+			throw IOErr(WsErrMsgs.handshakeWrongHttpVersion(req.version))
 		
 		if (req.method != "GET")
-			throw WebSocketErr(WsErrMsgs.handshakeWrongHttpMethod(req.method))
+			throw IOErr(WsErrMsgs.handshakeWrongHttpMethod(req.method))
 		
 		if (req.headers["Host"] == null)
-			throw WebSocketErr(WsErrMsgs.handshakeHostHeaderNotFound(req.headers))
+			throw IOErr(WsErrMsgs.handshakeHostHeaderNotFound(req.headers))
 		
 		if (req.headers["Connection"] == null)
-			throw WebSocketErr(WsErrMsgs.handshakeConnectionHeaderNotFound(req.headers))
+			throw IOErr(WsErrMsgs.handshakeConnectionHeaderNotFound(req.headers))
 		if (!req.headers["Connection"].lower.split(',').contains("upgrade"))
-			throw WebSocketErr(WsErrMsgs.handshakeConnectionHeaderWrongValue(req.headers["Connection"]))
+			throw IOErr(WsErrMsgs.handshakeConnectionHeaderWrongValue(req.headers["Connection"]))
 		
 		if (req.headers["Upgrade"] == null)
-			throw WebSocketErr(WsErrMsgs.handshakeUpgradeHeaderNotFound(req.headers))
+			throw IOErr(WsErrMsgs.handshakeUpgradeHeaderNotFound(req.headers))
 		if (!req.headers["Upgrade"].equalsIgnoreCase("websocket"))
-			throw WebSocketErr(WsErrMsgs.handshakeUpgradeHeaderWrongValue(req.headers["Upgrade"]))
+			throw IOErr(WsErrMsgs.handshakeUpgradeHeaderWrongValue(req.headers["Upgrade"]))
 
 		if (req.headers["Sec-WebSocket-Version"] == null)
-			throw WebSocketErr(WsErrMsgs.handshakeWsVersionHeaderNotFound(req.headers))
+			throw IOErr(WsErrMsgs.handshakeWsVersionHeaderNotFound(req.headers))
 		if (!req.headers["Sec-WebSocket-Version"].equalsIgnoreCase("13")) {
-			log.warn(WsLogMsgs.handshakeWsVersionHeaderWrongValue(req.headers["Sec-WebSocket-Version"]))
 			res.headers["Sec-WebSocket-Version"] = "13"
-			res.statusCode = 400
-			return false
+			throw IOErr(WsErrMsgs.handshakeWsVersionHeaderWrongValue(req.headers["Sec-WebSocket-Version"]))
 		}
 
 		if (req.headers["Sec-WebSocket-Key"] == null)
-			throw WebSocketErr(WsErrMsgs.handshakeWsKeyHeaderNotFound(req.headers))
+			throw IOErr(WsErrMsgs.handshakeWsKeyHeaderNotFound(req.headers))
 
 		if (allowedOrigins != null) {
 			origin := req.headers["Origin"]
 			if (origin == null)
-				throw WebSocketErr(WsErrMsgs.handshakeOriginHeaderNotFound(req.headers))
+				throw IOErr(WsErrMsgs.handshakeOriginHeaderNotFound(req.headers))
 			originGlobs := (Regex[]) allowedOrigins.map { Regex.glob(it) }
 			if (!originGlobs.any |domain| { domain.matches(origin) }) {
-				log.warn(WsLogMsgs.handshakeOriginIsNotAllowed(origin, allowedOrigins))
 				res.statusCode = 403
-				return false
+				throw IOErr(WsErrMsgs.handshakeOriginIsNotAllowed(origin, allowedOrigins))
 			}
 		}
 

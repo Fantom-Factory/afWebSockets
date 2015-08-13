@@ -15,7 +15,7 @@ internal const class WebSocketResponseProcessor : ResponseProcessor {
 	override Obj process(Obj response) {
 		webSocket := (WebSocket) response
 
-		webSockets.service(req, res, webSocket)
+		webSockets.service(webSocket, req, res)
 
 		return true
 	}
