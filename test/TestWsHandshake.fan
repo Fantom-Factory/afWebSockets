@@ -37,43 +37,43 @@ internal class TestWsHandshake : WsTest {
 
 	Void testHandshakeReqHeaderMustContainHost() {
 		req.headers.remove("Host")
-		verifyWsErrMsg(WsErrMsgs.handshakeHostHeaderNotFound(req.headers)) {
+		verifyWsErrMsg(WsErrMsgs.handshakeHeaderNotFound("Host", req.headers)) {
 			core.shakeHandsWithClient(req, res, null)
 		}
 	}
 
 	Void testHandshakeReqHeaderMustContainConnection() {
 		req.headers.remove("Connection")
-		verifyWsErrMsg(WsErrMsgs.handshakeConnectionHeaderNotFound(req.headers)) {
+		verifyWsErrMsg(WsErrMsgs.handshakeHeaderNotFound("Connection", req.headers)) {
 			core.shakeHandsWithClient(req, res, null)
 		}
 
 		req.headers["Connection"] = "wotever"
-		verifyWsErrMsg(WsErrMsgs.handshakeConnectionHeaderWrongValue("wotever")) {
+		verifyWsErrMsg(WsErrMsgs.handshakeWrongHeaderValue("Connection", "Upgrade", "wotever")) {
 			core.shakeHandsWithClient(req, res, null)
 		}
 	}
 
 	Void testHandshakeReqHeaderMustContainUpgrade() {
 		req.headers.remove("Upgrade")
-		verifyWsErrMsg(WsErrMsgs.handshakeUpgradeHeaderNotFound(req.headers)) {
+		verifyWsErrMsg(WsErrMsgs.handshakeHeaderNotFound("Upgrade", req.headers)) {
 			core.shakeHandsWithClient(req, res, null)
 		}
 
 		req.headers["Upgrade"] = "wotever"
-		verifyWsErrMsg(WsErrMsgs.handshakeUpgradeHeaderWrongValue("wotever")) {
+		verifyWsErrMsg(WsErrMsgs.handshakeWrongHeaderValue("Upgrade", "websocket", "wotever")) {
 			core.shakeHandsWithClient(req, res, null)
 		}
 	}
 
 	Void testHandshakeReqHeaderMustContainWsVersion() {
 		req.headers.remove("Sec-WebSocket-Version")
-		verifyWsErrMsg(WsErrMsgs.handshakeWsVersionHeaderNotFound(req.headers)) {
+		verifyWsErrMsg(WsErrMsgs.handshakeHeaderNotFound("Sec-WebSocket-Version", req.headers)) {
 			core.shakeHandsWithClient(req, res, null)
 		}
 
 		req.headers["Sec-WebSocket-Version"] = "wotever"
-		verifyWsErrMsg(WsErrMsgs.handshakeWsVersionHeaderWrongValue("wotever")) {
+		verifyWsErrMsg(WsErrMsgs.handshakeWrongHeaderValue("Sec-WebSocket-Version", "13", "wotever")) {
 			core.shakeHandsWithClient(req, res, null)
 		}
 		verifyEq(res.headers["Sec-WebSocket-Version"], "13")
@@ -81,13 +81,13 @@ internal class TestWsHandshake : WsTest {
 
 	Void testHandshakeReqHeaderContainsWsKey() {
 		req.headers.remove("Sec-WebSocket-Key")
-		verifyWsErrMsg(WsErrMsgs.handshakeWsKeyHeaderNotFound(req.headers)) {
+		verifyWsErrMsg(WsErrMsgs.handshakeHeaderNotFound("Sec-WebSocket-Key", req.headers)) {
 			core.shakeHandsWithClient(req, res, null)
 		}
 	}
 
 	Void testHandshakeMatchesAllowedOrigins() {
-		verifyWsErrMsg(WsErrMsgs.handshakeOriginHeaderNotFound(req.headers)) {
+		verifyWsErrMsg(WsErrMsgs.handshakeHeaderNotFound("Origin", req.headers)) {
 			core.shakeHandsWithClient(req, res, ["*"])
 		}
 		
