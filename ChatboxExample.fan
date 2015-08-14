@@ -1,21 +1,25 @@
+using afWebSockets
 using afIoc
-using afBedSheet::Route
-using afBedSheet::Routes
+using afBedSheet
 using afBedSheet::Text as BsText
-using afBedSheet::WebSocketsModuleV1
 using afConcurrent::Synchronized
+using afDuvet::DuvetModule
 using afDuvet::HtmlInjector
 using concurrent::ActorPool
 using fwt
 
-internal class Chatbox {	
+class Chatbox {	
 	static Void main(Str[] args) {
-		afBedSheet::Main().main("${AppModule#.qname} 8069".split)
+		if (args.first == "client")
+			ChatboxClient().main
+		else
+			afBedSheet::Main().main("${AppModule#.qname} 8069".split)
 	}
 }
 
-@SubModule { modules=[WebSocketsModuleV1#] }
-internal class AppModule {
+// @SubModule only required because the example is run as a script
+@SubModule { modules=[WebSocketsModuleV1#, DuvetModule#] }
+class AppModule {
 	@Contribute { serviceType=Routes# }
 	static Void contributeRoutes(Configuration conf) {
 		conf.add(Route(`/`, 	ChatboxRoutes#indexPage))
@@ -23,7 +27,7 @@ internal class AppModule {
 	}
 }
 
-internal const class ChatboxRoutes {
+const class ChatboxRoutes {
 	@Inject private const WebSockets	webSockets
 	@Inject private const HtmlInjector	htmlInjector
 	
@@ -53,8 +57,7 @@ internal const class ChatboxRoutes {
 }
 
 @Js
-internal class ChatboxClient {
-
+class ChatboxClient {
 	Void main() {
 		webSock := WebSocket.make().open(`ws://localhost:8069/ws`)
 		convBox := Text { text = "The conversation:\r\n"; multiLine = true; editable = false }

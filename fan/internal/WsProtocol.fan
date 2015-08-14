@@ -13,35 +13,26 @@ internal const class WsProtocol {
 		if (req.method != "GET")
 			throw IOErr(WsErrMsgs.handshakeWrongHttpMethod(req.method))
 		
-		if (req.headers["Host"] == null)
-			throw IOErr(WsErrMsgs.handshakeHostHeaderNotFound(req.headers))
+		"Host Connection Upgrade Sec-WebSocket-Version Sec-WebSocket-Key".split.each {
+			if (!req.headers.containsKey(it))
+				throw IOErr(WsErrMsgs.handshakeHeaderNotFound(it, req.headers))
+		}
 		
-		if (req.headers["Connection"] == null)
-			throw IOErr(WsErrMsgs.handshakeConnectionHeaderNotFound(req.headers))
 		if (!req.headers["Connection"].lower.split(',').contains("upgrade"))
-			throw IOErr(WsErrMsgs.handshakeConnectionHeaderWrongValue(req.headers["Connection"]))
-		
-		if (req.headers["Upgrade"] == null)
-			throw IOErr(WsErrMsgs.handshakeUpgradeHeaderNotFound(req.headers))
-		if (!req.headers["Upgrade"].equalsIgnoreCase("websocket"))
-			throw IOErr(WsErrMsgs.handshakeUpgradeHeaderWrongValue(req.headers["Upgrade"]))
+			throw IOErr(WsErrMsgs.handshakeWrongHeaderValue("Connection", "Upgrade", req.headers["Connection"]))
 
-		if (req.headers["Sec-WebSocket-Version"] == null)
-			throw IOErr(WsErrMsgs.handshakeWsVersionHeaderNotFound(req.headers))
+		if (!req.headers["Upgrade"].equalsIgnoreCase("websocket"))
+			throw IOErr(WsErrMsgs.handshakeWrongHeaderValue("Upgrade", "websocket", req.headers["Upgrade"]))
+
 		if (!req.headers["Sec-WebSocket-Version"].equalsIgnoreCase("13")) {
 			res.headers["Sec-WebSocket-Version"] = "13"
-			throw IOErr(WsErrMsgs.handshakeWsVersionHeaderWrongValue(req.headers["Sec-WebSocket-Version"]))
+			throw IOErr(WsErrMsgs.handshakeWrongHeaderValue("Sec-WebSocket-Version", "13", req.headers["Sec-WebSocket-Version"]))
 		}
 
-		if (req.headers["Sec-WebSocket-Key"] == null)
-			throw IOErr(WsErrMsgs.handshakeWsKeyHeaderNotFound(req.headers))
-
 		if (allowedOrigins != null) {
-			origin := req.headers["Origin"]
-			if (origin == null)
-				throw IOErr(WsErrMsgs.handshakeOriginHeaderNotFound(req.headers))
-			originGlobs := (Regex[]) allowedOrigins.map { Regex.glob(it) }
-			if (!originGlobs.any |domain| { domain.matches(origin) }) {
+			origin 		:= req.headers["Origin"] ?: throw IOErr(WsErrMsgs.handshakeHeaderNotFound("Origin", req.headers))
+			originGlobs	:= (Regex[]) allowedOrigins.map { Regex.glob(it) }
+			if (origin == null || !originGlobs.any |domain| { domain.matches(origin) }) {
 				res.statusCode = 403
 				throw IOErr(WsErrMsgs.handshakeOriginIsNotAllowed(origin, allowedOrigins))
 			}
@@ -59,8 +50,6 @@ internal const class WsProtocol {
 	}
 	
 	Void shakeHandsWithServer(WebClient c, Str[]? protocols) {
-		
-		// TODO: give better handshake messages
 		key := Buf.random(16).toBase64
 		c.reqMethod								= "GET"
 		c.reqHeaders["Upgrade"]					= "websocket"
@@ -69,15 +58,28 @@ internal const class WsProtocol {
 		c.reqHeaders["Sec-WebSocket-Version"]	= 13.toStr
 		if (protocols != null)
 			c.reqHeaders["Sec-WebSocket-Protocol"]	= protocols.join(", ")
+
 		c.writeReq
-		
 		c.readRes
-		if (c.resCode != 101)									throw IOErr("Bad HTTP response $c.resCode $c.resPhrase")
-		if (c.resHeaders["Upgrade"]    != "websocket")			throw IOErr("Invalid Upgrade header")
-		if (c.resHeaders["Connection"] != "Upgrade")			throw IOErr("Invalid Connection header")
-		digest		:= c.resHeaders["Sec-WebSocket-Accept"] ?:	throw IOErr("Missing Sec-WebSocket-Accept header")
+		
+		if (c.resCode != 101)
+			throw IOErr(WsErrMsgs.handshakeBadResponseCode(c.resCode, c.resPhrase))
+
+		"Connection Upgrade Sec-WebSocket-Accept".split.each {
+			if (!c.resHeaders.containsKey(it))
+				throw IOErr(WsErrMsgs.handshakeHeaderNotFound(it, c.resHeaders))
+		}
+		
+		if (!c.resHeaders["Connection"].lower.split(',').contains("upgrade"))
+			throw IOErr(WsErrMsgs.handshakeWrongHeaderValue("Connection", "Upgrade", c.resHeaders["Connection"]))
+
+		if (!c.resHeaders["Upgrade"].equalsIgnoreCase("websocket"))
+			throw IOErr(WsErrMsgs.handshakeWrongHeaderValue("Upgrade", "websocket", c.resHeaders["Upgrade"]))
+
+		digest		:= c.resHeaders["Sec-WebSocket-Accept"]
 		secDigest	:= Buf().print(key).print("258EAFA5-E914-47DA-95CA-C5AB0DC85B11").toDigest("SHA-1").toBase64
-		if (secDigest != digest) 								throw IOErr("Mismatch Sec-WebSocket-Accept")
+		if (secDigest != digest)
+			throw IOErr(WsErrMsgs.handshakeBadAcceptCode)
 	}
 	
 	Void process(WebSocketFan webSocket) {
@@ -129,13 +131,16 @@ internal const class WsProtocol {
 			try webSocket.onClose?.call(err.closeEvent)
 			catch (Err eek)
 				log.warn("Err in onClose() handler", eek)
-			
+
 		} catch (Err err) {
 			webSocket.readyState = ReadyState.closing
-			
-			try webSocket.onError?.call(err)
-			catch (Err eek)
-				log.warn("Err in onError() handler", eek)
+
+			// don't bother calling onError for read-timeouts or if the socket closed behind our back
+			if (err isnot IOErr) {
+				try webSocket.onError?.call(err)
+				catch (Err eek)
+					log.warn("Err in onError() handler", eek)
+			}
 			
 			closeEvent := CloseEvent { it.wasClean = true; it.code = CloseCodes.internalError; it.reason = CloseMsgs.internalError(err) }
 			try webSocket.writeFrame(closeEvent.toFrame)

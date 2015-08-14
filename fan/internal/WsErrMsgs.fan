@@ -3,53 +3,33 @@
 internal mixin WsErrMsgs {
 	
 	static Str handshakeWrongHttpVersion(Version httpVersion) {
-		"WebSocket requests need to be HTTP/1.1 or higher: received HTTP/$httpVersion"
+		"Invalid HTTP version; expected 'HTTP/1.1' or higher but got 'HTTP/${httpVersion}'"
 	}
 
 	static Str handshakeWrongHttpMethod(Str httpMethod) {
-		"WebSocket requests need to use HTTP GET - received HTTP $httpMethod"
+		"Invalid HTTP method; expected 'GET' but got '${httpMethod}'"
 	}
 
-	static Str handshakeHostHeaderNotFound(Str:Str headers) {
-		"Request does not contain a 'Host' header - $headers"
+	static Str handshakeHeaderNotFound(Str wanted, Str:Str headers) {
+		"Absent '${wanted}' HTTP header; not found in ${headers}"
 	}
 
-	static Str handshakeUpgradeHeaderNotFound(Str:Str headers) {
-		"Request does not contain an 'Upgrade' header - $headers"
+	static Str handshakeWrongHeaderValue(Str name, Str expected, Str actual) {
+		"Invalid '${name}' HTTP header; expected '${expected}' but got '${actual}'"
 	}
 
-	static Str handshakeUpgradeHeaderWrongValue(Str upgrade) {
-		"Request 'Upgrade' header should be 'websocket' - $upgrade"
+	static Str handshakeOriginIsNotAllowed(Str origin, Str[] allowedOrigins) {
+		"Invalid 'Origin' HTTP header; '${origin}' does not match list of allowed origins - $allowedOrigins"
 	}
 
-	static Str handshakeConnectionHeaderNotFound(Str:Str headers) {
-		"Request does not contain a 'Connection' header - $headers"
-	}
-
-	static Str handshakeConnectionHeaderWrongValue(Str upgrade) {
-		"Request 'Connection' header should be 'Upgrade' - $upgrade"
-	}
-
-	static Str handshakeWsVersionHeaderNotFound(Str:Str headers) {
-		"Request does not contain a 'Sec-WebSocket-Version' header - $headers"
-	}
-
-	static Str handshakeOriginHeaderNotFound(Str:Str headers) {
-		"Request does not contain an 'Origin' header - $headers"
-	}
-
-	static Str handshakeWsVersionHeaderWrongValue(Str wsVersion) {
-		"Request 'Sec-WebSocket-Version' header should be '13' - $wsVersion"
-	}
-
-	static Str handshakeWsKeyHeaderNotFound(Str:Str headers) {
-		"Request does not contain a 'Sec-WebSocket-Key' header - $headers"
+	static Str handshakeBadResponseCode(Int resCode, Str resPhrase) {
+		"Bad HTTP response code; expected '101 - Switching Protocols' but got '$resCode - $resPhrase'"
 	}
 	
-	static Str handshakeOriginIsNotAllowed(Str origin, Str[] allowedOrigins) {
-		"Request 'Origin' header '${origin}' does not match allowed origins - $allowedOrigins"
+	static Str handshakeBadAcceptCode() {
+		"Bad 'Sec-WebSocket-Accept' HTTP header; does not match computed digest"
 	}
-
+	
 	static Str wsNotConnected() {
 		"WebSocket has not been connected to a HTTP request!"
 	}

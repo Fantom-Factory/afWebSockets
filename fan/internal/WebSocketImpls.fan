@@ -56,6 +56,7 @@ internal class WebSocketFan : WebSocket {
 	override Void close(Int? code := 1000, Str? reason := null) {
 		// when the client pongs the close frame back, we'll close the connection
 		readyState = ReadyState.closing
+		// FIXME: catch IOErr
 		writeFrame(Frame(code, reason))
 	}
 
@@ -64,6 +65,7 @@ internal class WebSocketFan : WebSocket {
 	}
 	
 	override Void sendText(Str data) {
+		// FIXME: catch IOErr
 		writeFrame(Frame(data))
 	}
 
