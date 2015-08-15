@@ -1,10 +1,16 @@
 
 ** Sent on a `WebSocket` message event.
 @Js
-const class MsgEvent {
-	const Str msg
+class MsgEvent {
+	Str? txt
+	Buf? buf
 	
 	internal new make(|This|in) { in(this) }
+	
+	@NoDoc
+	override Str toStr() {
+		txt == null ? "Binary - $buf" : "Text - $txt"
+	}
 }
 
 ** Sent on a `WebSocket` close event.
@@ -24,8 +30,12 @@ const class CloseEvent {
 
 	internal new make(|This|in) { in(this) }
 	
-	internal Frame toFrame() {
-		Frame.makeCloseFrame(code, reason)
+	internal Void writeFrame(WebSocket webSocket) {
+		webSock := (WebSocketFan) webSocket
+		webSock.readyState = ReadyState.closing
+		frame := Frame.makeCloseFrame(code, reason)
+		try webSock.writeFrame(frame)
+		catch { /* meh */ }
 	}
 	
 	@NoDoc

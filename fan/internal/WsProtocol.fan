@@ -83,11 +83,11 @@ internal const class WsProtocol {
 	}
 	
 	Void process(WebSocketFan webSocket) {
+		exitErr := (Err?) null
 		try {
 			webSocket.onOpen?.call()
-			
-			while (webSocket.readyState < ReadyState.closing) {
-				
+
+			while (exitErr == null && webSocket.readyState < ReadyState.closing) {
 				frame 	:= webSocket.readFrame
 				
 				if (frame == null) 
@@ -106,8 +106,13 @@ internal const class WsProtocol {
 				}
 
 				if (frame.type == FrameType.text) {
-					message	:= frame.payloadAsStr ?: ""
-					msgEvt	:= MsgEvent() { it.msg = message }
+					msgEvt	:= MsgEvent() { it.txt = frame.payloadAsStr }
+					webSocket.onMessage?.call(msgEvt)
+					continue
+				}
+
+				if (frame.type == FrameType.binary) {
+					msgEvt	:= MsgEvent() { it.buf = frame.payloadAsBuf }
 					webSocket.onMessage?.call(msgEvt)
 					continue
 				}
@@ -116,40 +121,34 @@ internal const class WsProtocol {
 					webSocket.readyState = ReadyState.closing
 					closeCode 	:= (frame.payload.remaining >= 2) ? frame.payload.readU2 : CloseCodes.noStatusRcvd
 					closeReason	:= (closeCode == CloseCodes.noStatusRcvd) ? null : frame.payloadAsStr
-					// purists will hate me for this! Using Errs for flow logic!
-					throw CloseFrameErr(closeCode, closeReason)
+					exitErr 	= CloseFrameErr(closeCode, closeReason)
+					continue
 				}
 
-				throw CloseFrameErr(CloseCodes.unsupportedData, CloseMsgs.unsupportedFrame(frame.type))
+				exitErr = CloseFrameErr(CloseCodes.unsupportedData, CloseMsgs.unsupportedFrame(frame.type))
 			}
-
-		} catch (CloseFrameErr err) {
-			webSocket.readyState = ReadyState.closing
-			if (err.closeEvent.wasClean)
-				webSocket.writeFrame(err.closeEvent.toFrame)
-
-			try webSocket.onClose?.call(err.closeEvent)
-			catch (Err eek)
-				log.warn("Err in onClose() handler", eek)
 
 		} catch (Err err) {
-			webSocket.readyState = ReadyState.closing
+			exitErr = err
+		}
+		
+		closeEvent := exitErr is CloseFrameErr 
+			? ((CloseFrameErr) exitErr).closeEvent 
+			: CloseEvent { it.wasClean = true; it.code = CloseCodes.internalError; it.reason = CloseMsgs.internalError(exitErr) }
+		
+		if (closeEvent.wasClean)
+			closeEvent.writeFrame(webSocket)
 
+		try webSocket.onClose?.call(closeEvent)
+		catch (Err eek)
+			log.warn("Err in onClose() handler", eek)
+
+		if (exitErr isnot CloseFrameErr)
 			// don't bother calling onError for read-timeouts or if the socket closed behind our back
-			if (err isnot IOErr) {
-				try webSocket.onError?.call(err)
+			if (exitErr isnot IOErr) 
+				try webSocket.onError?.call(exitErr)
 				catch (Err eek)
 					log.warn("Err in onError() handler", eek)
-			}
-			
-			closeEvent := CloseEvent { it.wasClean = true; it.code = CloseCodes.internalError; it.reason = CloseMsgs.internalError(err) }
-			try webSocket.writeFrame(closeEvent.toFrame)
-			catch { /* meh */ }
-
-			try webSocket.onClose?.call(closeEvent)
-			catch (Err eek)
-				log.warn("Err in onClose() handler", eek)
-		}
 		
 		webSocket.readyState = ReadyState.closed
 	}

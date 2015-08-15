@@ -51,7 +51,7 @@ abstract class WebSocket {
 	abstract This open(Uri url, Str[]? protocols := null)
 
 	** Throws 'IOErr' should there be something wrong with the upgrade handskake.
-	abstract This upgrade(WebReq req, WebRes res, Bool flush := true)
+	abstract This upgrade(Obj webReq, Obj webRes, Bool flush := true)
 	
 	** Closes the WebSocket connection.
 	** Does nothing if the connection is already closed or closing.
@@ -62,9 +62,11 @@ abstract class WebSocket {
 
 	abstract Void read()
 	
-	// TODO: have sendBinary(Buf data)
-	** Transmits data through the WebSocket connection.
+	** Transmits text through the WebSocket connection.
 	abstract Void sendText(Str data)
+
+	** Transmits binary data through the WebSocket connection.
+	abstract Void sendBinary(Buf data)
 	
 }
 

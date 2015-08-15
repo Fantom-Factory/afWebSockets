@@ -25,7 +25,7 @@ fan.afWebSockets.WebSocketJsPeer.prototype.connect = function(self, url, protoco
 				fan.sys.List.make(fan.sys.Param.$type, [new fan.sys.Param("it", "afWebSockets::MsgEvent", false)]),
 				fan.sys.Void.$type,
 				function(it) {
-					it.m_msg = event.data;
+					it.m_txt = event.data;
 				}
 			)
 		);
@@ -59,7 +59,6 @@ fan.afWebSockets.WebSocketJsPeer.prototype.connect = function(self, url, protoco
 
 fan.afWebSockets.WebSocketJsPeer.prototype.sendText = function(self, data) {
 	self.webSocket.send(data);
-	console.log("sent data")
 }
 
 fan.afWebSockets.WebSocketJsPeer.prototype.close = function(self, code, reason) {

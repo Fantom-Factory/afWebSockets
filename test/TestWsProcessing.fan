@@ -35,7 +35,7 @@ internal class TestWsProcessing : WsTest {
 		reqInBuf.flip
 		
 		wsCore.process(webSocket)		
-		verifyEq(msgEvent.msg, "Hello Peeps!")
+		verifyEq(msgEvent.txt, "Hello Peeps!")
 	}
 
 	Void testOnCloseCallback() {
