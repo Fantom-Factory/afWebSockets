@@ -2,7 +2,10 @@
 ** Sent on a `WebSocket` message event.
 @Js
 class MsgEvent {
+	** Set in a text message.
 	Str? txt
+	
+	** Set in a binary message.
 	Buf? buf
 	
 	internal new make(|This|in) { in(this) }

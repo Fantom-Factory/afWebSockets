@@ -1,12 +1,8 @@
 Overview
 ********
-'WebSockets' is a faithful implementaion of the [W3C WebSocket API]`http://www.w3.org/TR/websockets/` and adheres to [RFC 6455]`http://tools.ietf.org/html/rfc6455`.
+'WebSockets' is a faithful implementation of the [W3C WebSocket API]`http://www.w3.org/TR/websockets/` and adheres to [RFC 6455]`http://tools.ietf.org/html/rfc6455`.
 
-An AlienFactory WebSocket may be used on the server
-
- for the
-[Wisp]`http://fantom.org/doc/wisp/index.html` web server and
-[afBedSheet]`http://repo.status302.com/doc/afBedSheet/#overview` web application framework.
+The same 'WebSocket' class may be used as a Fantom desktop client, a Javascript web client, or on a web server.
 
 Note that WebSockets does not currently support frame fragmentation or continuations.
 
@@ -14,7 +10,15 @@ Note that WebSockets does not currently support frame fragmentation or continuat
 
 Quick Start
 ***********
-1. Create a text file called 'ChatboxExample.fan'
+This example is a simple instant messaging application called *Chatbox!*
+
+It has a basic client that, using the same Fantom code, runs in a browser and as a desktop application. A BedSheet web application is used to service the WebSockets and serve the Chatbox web client.
+
+Due to the web client being Javascript compiled from Fantom code, Chatbox must first be compiled to a pod. All the interesting WebSocket code is in the 'ChatboxRoutes' and 'ChatboxClient' classes.
+
+1. Create a text file called 'Chatbox.fan'
+
+    syntax: fantom
 
     using afWebSockets
     using afIoc
@@ -25,18 +29,19 @@ Quick Start
     using afDuvet::HtmlInjector
     using concurrent::ActorPool
     using fwt
+    using build::BuildPod
 
-    class Chatbox {
-        static Void main(Str[] args) {
-            if (args.first == "client")
+    class Main {
+        Void main(Str[] args) {
+            if (args.first == "-client")
                 ChatboxClient().main
-            else
-                afBedSheet::Main().main("${AppModule#.qname} 8069".split)
+            if (args.first == "-server")
+                BedSheetBuilder(AppModule#.qname).startWisp(8069)
+            if (args.first == "-build")
+                Builder().main
         }
     }
 
-    // @SubModule only required because the example is run as a script
-    @SubModule { modules=[WebSocketsModuleV1#, DuvetModule#] }
     class AppModule {
         @Contribute { serviceType=Routes# }
         static Void contributeRoutes(Configuration conf) {
@@ -54,10 +59,10 @@ Quick Start
         BsText indexPage() {
             htmlInjector.injectFantomMethod(ChatboxClient#main)
             return BsText.fromHtml(
-                "<!doctype>
+                "<!DOCTYPE html>
                  <html>
                  <head>
-                    <title>WebSocket ChatBox Example</title>
+                    <title>ChatBox - A WebSocket Demo</title>
                  </head>
                  <body>
                  </body>
@@ -68,7 +73,7 @@ Quick Start
             WebSocket.make() {
                 ws := it
                 onMessage = |MsgEvent me| {
-                    webSockets.broadcast("${ws.id} says, '${me.msg}'")
+                    webSockets.broadcast("${ws.id} says, '${me.txt}'")
                 }
             }
         }
@@ -86,13 +91,13 @@ Quick Start
             }
 
             webSock.onMessage = |MsgEvent msgEnv| {
-                convBox.text += "\r\n" + msgEnv.msg
+                convBox.text += "\r\n" + msgEnv.txt
             }
 
             textBox.onAction.add(sendMsg)
 
             window := Window {
-                title = "WebSocket ChatBox Example"
+                title = "ChatBox - A WebSocket Demo"
                 InsetPane {
                     EdgePane {
                         center  = convBox
@@ -104,11 +109,13 @@ Quick Start
                 },
             }
 
+            // Desktop only code
             if (Env.cur.runtime != "js") {
                 // ensure event funcs are run in the UI thread
-                safeMess := Unsafe(webSock.onMessage)
+                safeFunc := Unsafe(webSock.onMessage)
                 webSock.onMessage = |MsgEvent msgEnv| {
-                    Desktop.callAsync |->| { safeMess.val->call(msgEnv) }
+                    safeMess := Unsafe(msgEnv)
+                    Desktop.callAsync |->| { safeFunc.val->call(safeMess.val) }
                 }
 
                 // call the blocking read() method in a background thread
@@ -122,60 +129,239 @@ Quick Start
         }
     }
 
+    class Builder : BuildPod {
+        new make() {
+            podName = "wsChatbox"
+            summary = "A WebSocket Demo"
+
+            meta = [
+                "proj.name"    : "ChatBox - A WebSocket Demo",
+                "afIoc.module" : "wsChatbox::AppModule",
+            ]
+
+            depends = [
+                "sys          1.0",
+                "fwt          1.0",
+                "web          1.0",
+                "build        1.0",
+                "concurrent   1.0",
+                "afIoc        2.0",
+                "afConcurrent 1.0",
+                "afBedSheet   1.4",
+                "afDuvet      1.0",
+                "afWebSockets   0+",
+            ]
+
+            srcDirs = [`Chatbox.fan`]
+        }
+    }
 
 
-1. Run 'Chatbox.fan' as a Fantom script from the command line:
+1. Compile the script to create a 'wsChatbox' pod, the warnings are expected and may be ignored.
 
-    WARN Type 'afConcurrent::Synchronized' not available in Js
-    [info] [afBedSheet] Found mod 'ChatboxExample_0::AppModule'
-    [info] [afIoc] Adding module definitions from pod 'ChatboxExample_0'
-    [info] [afIoc] Adding module definition for ChatboxExample_0::AppModule
-    [info] [afIoc] Adding module definition for afBedSheet::WebSocketsModuleV1
+    C:\> fan Chatbox.fan -build
+
+    WARN: Type 'afConcurrent::Synchronized' not available in Js
+    WARN: Unknown build option -build
+    compile [wsChatbox]
+      Compile [wsChatbox]
+        FindSourceFiles [1 files]
+        CompileJs
+        WritePod [file:/C:/Apps/Fantom/fan/lib/fan/wsChatbox.pod]
+    BUILD SUCCESS [237ms]!
+
+
+1. Start the Chatbox server:
+
+    C:\> fan wsChatbox -server
+
+    [info] [afBedSheet] Found mod 'wsChatbox::AppModule'
+    [info] [afIoc] Adding module definitions from pod 'wsChatbox'
+    [info] [afIoc] Adding module definition for wsChatbox::AppModule
     [info] [afIoc] Adding module definition for afBedSheet::BedSheetModule
     [info] [afIoc] Adding module definition for afIocConfig::ConfigModule
     [info] [afIoc] Adding module definition for afBedSheet::BedSheetEnvModule
-    [info] [afBedSheet] Starting Bed App 'ChatboxExample_0' on port 8069
+    [info] [afIoc] Adding module definition for afIocEnv::IocEnvModule
+    [info] [afIoc] Adding module definition for afDuvet::DuvetModule
+    [info] [afIoc] Adding module definition for afWebSockets::WebSocketsModule
+    [info] [afBedSheet] Starting Bed App 'ChatBox - A WebSocket Demo' on port 8069
     [info] [web] http started on port 8069
     [info] [afIocEnv] Setting from environment variable 'env' : development
 
-    43 IoC Services:
-      10 Builtin
-      29 Defined
-       0 Proxied
-       4 Created
+    Duvet is configured with 10 RequireJS modules:
 
-    67.44% of services are unrealised (29/43)
+      afConcurrent : /pods/afConcurrent/afConcurrent
+           afDuvet : /pods/afDuvet/afDuvet
+      afWebSockets : /pods/afWebSockets/afWebSockets
+        concurrent : /pods/concurrent/concurrent
+               fwt : /pods/fwt/fwt
+               gfx : /pods/gfx/gfx
+               sys : /pods/sys/sys
+              util : /pods/util/util
+               web : /pods/web/web
+         wsChatbox : /pods/wsChatbox/wsChatbox
+
+    48 IoC Services:
+      10 Builtin
+      27 Defined
+       0 Proxied
+      11 Created
+
+    56.25% of services are unrealised (27/48)
        ___    __                 _____        _
       / _ |  / /_____  _____    / ___/__  ___/ /_________  __ __
      / _  | / // / -_|/ _  /===/ __// _ \/ _/ __/ _  / __|/ // /
     /_/ |_|/_//_/\__|/_//_/   /_/   \_,_/__/\__/____/_/   \_, /
-             Alien-Factory BedSheet v1.4.16, IoC v2.0.10 /___/
+             Alien-Factory BedSheet v1.4.14, IoC v2.0.10 /___/
 
-    IoC Registry built in 213ms and started up in 53ms
+    IoC Registry built in 200ms and started up in 78ms
 
-    Bed App 'ChatboxExample_0' listening on http://localhost:8069/
+    Bed App 'ChatBox - A WebSocket Demo' listening on http://localhost:8069/
 
-1. Visit 'http://localhost:8069/' to load a chatbox example:
+
+1. Visit 'http://localhost:8069/' to load a Chatbox web client:
+
+  ![Chatbox Web Client]`chatbox-webClient.png`
+
+  You may also start a Chatbox desktop client:
+
+    C:\> fan wsChatbox -client
+
+  ![Chatbox Desktop Client]`chatbox-desktopClient.png`
+
+Messages are sent to the server, which then broadcasts it back out all connected clients. Instant messaging!
+
 
 
 Usage
 *****
 
-2 sides to a web socket - both use the same WebSocket class
+The `WebSocket` class adheres to the [W3C WebSocket API]`http://www.w3.org/TR/websockets/` and may be used as a client, or on the server, and even from Javascript. It has hooks that allow you to respond to various WebSocket events:
+ - [onOpen]`WebSocket.onOpen`
+ - [onMessage]`WebSocket.onMessage`
+ - [onError]`WebSocket.onError`
+ - [onClose]`WebSocket.onClose`
+
+
 
 Fantom Client
 =============
+To create a Fantom WebSocket client:
+
+pre>
+syntax: fantom
+
+webSock := WebSocket()
+webSock.onMessage |MsgEvent e| { ... }
+webSock.open(`ws:localhost:8069`)
+
+// block in an event loop until the socket is closed
+webSock.read
+<pre
+
+Note that 'WebSocket.read()' enters a read event loop that blocks the current thread / Actor until the WebSocket is closed. Therefore it may be advantageous to call the 'read()' method in an asynchronous fashion. Alien-Factory's [Concurrent]`pod:afConcurrent` library is the easiest way to do this:
+
+pre>
+syntax: fantom
+
+using afConcurrent::Synchronized
+
+// call the blocking read() method in a background thread
+safeSock := Unsafe(webSock)
+Synchronized(ActorPool()).async |->| {
+    safeSock.val->read
+}
+<pre
 
 
 
 Javascript Client
 =================
-Use fantom or regular js
+To create a Javascript WebSocket client:
+
+pre>
+syntax: fantom
+
+webSock := WebSocket()
+webSock.onMessage |MsgEvent e| { ... }
+webSock.open(`ws:localhost:8069`)
+<pre
+
+Note that due to the asynchronous of Javascript, there is no need to call the 'read()' method.
+
 
 
 BedSheet Server
-======
+===============
+To use in a BedSheet web application to service HTTP requests, simply create a 'Route' handler that returns a WebSocket instance:
+
+pre>
+syntax: fantom
+using afWebSockets
+
+const class WsRoutes {
+    WebSocket serviceWs() {
+        webSock := WebSocket()
+        webSock.onMessage |MsgEvent e| { ... }
+        return webSock
+    }
+}
+<pre
+
+The instance will be saved in the 'WebSockets' service so messages may be sent to the client at any time.
+
+pre>
+syntax: fantom
+
+@Inject private const WebSockets webSockets
+
+...
+Void sayHello(Uri webSockId) {
+    webSockets[webSockId].sendText("Hello Pips!")
+}
+<pre
+
+The 'WebSocket' instance will be automatically disposed of when the connection is closed, either by the client or server.
+
 
 
 WebMod Server
+=============
+To use in a WebMod, the 'WebSocket' instance needs to be upgraded manually:
 
+pre>
+syntax: fantom
+using afWebSockets
+
+const class WsWebMod : WebMod {
+
+    Void serviceWs() {
+        webSock := WebSocket()
+        webSock.onMessage |MsgEvent e| { ... }
+        webSock.upgrade(req, res)
+        webSock.read
+    }
+}
+<pre
+
+Or you could store in a 'WebSockets' instance:
+
+pre>
+syntax: fantom
+using afWebSockets
+using web
+
+const class WsWebMod : WebMod {
+    const WebSockets webSockets := WebSockets(ActorPool())
+
+    Void serviceWs() {
+        webSock := WebSocket()
+        webSock.onMessage |MsgEvent e| { ... }
+        webSockets.service(webSock, req, res)
+    }
+
+    override Void onStop() {
+        webSockets.shutdown
+    }
+}
+<pre

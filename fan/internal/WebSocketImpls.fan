@@ -127,14 +127,13 @@ internal class WebSocketJs : WebSocket {
 		return this
 	}
 	
-	override This upgrade(Obj req, Obj res, Bool flush := true) {
-		throw UnsupportedErr("Only server side WebSockets may be upgraded")
-	}
-	override Void	read()		{ }
+		   // FIXME: JS -Send Binary
+		   override Void 		sendBinary(Buf data) { throw UnsupportedErr("TODO: Support binary messages in JS") }
+		   override This 		upgrade(Obj req, Obj res, Bool flush := true) { throw UnsupportedErr("Only server side WebSockets may be upgraded") }
+		   override Void		read()		{ }
 	native 			Void		connect(Uri url, Str[]? protocols)
 	native override ReadyState	readyState()
 	native override Int 		bufferedAmount()
 	native override Void		sendText(Str data)	
-	native override Void		sendBinary(Buf data)	// FIXME: !!!
 	native override Void		close(Int? code := 1000, Str? reason := null)
 }

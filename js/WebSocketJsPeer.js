@@ -25,7 +25,8 @@ fan.afWebSockets.WebSocketJsPeer.prototype.connect = function(self, url, protoco
 				fan.sys.List.make(fan.sys.Param.$type, [new fan.sys.Param("it", "afWebSockets::MsgEvent", false)]),
 				fan.sys.Void.$type,
 				function(it) {
-					it.m_txt = event.data;
+					if (typeof event.data === 'string' || event.data instanceof String)
+						it.m_txt = event.data;
 				}
 			)
 		);

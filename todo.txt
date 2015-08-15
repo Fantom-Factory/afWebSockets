@@ -1,26 +1,10 @@
 
-For 0.0.2 Preview Release
--------------------------
-Make work with new wisp
-
-podoc / readme.md
-State / doc does not support extensions, protocols, frame fragmentation / continuations.
-
-write demo app
-
-make WebSocket const (will need to Unsafe Buf)
-
-Check if GZIP just works!??
- - Accept-Encoding: gzip, deflate
-
 
 For 1.0
 -------
 Do binary frames (as it's now in Js API)
  - onMsg(type) or 
  - onTextMsg() / onBinaryMsg() ???
-
-Need a WebSocksets client, with a JS native...
 
 register ws: and wss:schemas - for WebSocketClients
  - resolve to Fantom WS client  
