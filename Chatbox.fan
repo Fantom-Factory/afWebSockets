@@ -7,18 +7,19 @@ using afDuvet::DuvetModule
 using afDuvet::HtmlInjector
 using concurrent::ActorPool
 using fwt
+using build::BuildPod
 
 class Chatbox {	
-	static Void main(Str[] args) {
-		if (args.first == "client")
+	Void main(Str[] args) {
+		if (args.first == "-client")
 			ChatboxClient().main
-		else
-			afBedSheet::Main().main("${AppModule#.qname} 8069".split)
+		if (args.first == "-server")
+			BedSheetBuilder(AppModule#.qname).startWisp(8069)
+		if (args.first == "-build")
+			Builder().main
 	}
 }
 
-// @SubModule only required because the example is run as a script
-@SubModule { modules=[WebSocketsModuleV1#, DuvetModule#] }
 class AppModule {
 	@Contribute { serviceType=Routes# }
 	static Void contributeRoutes(Configuration conf) {
@@ -39,7 +40,7 @@ const class ChatboxRoutes {
 			"<!doctype>
 			 <html>
 			 <head>
-			 	<title>WebSocket ChatBox Example</title>
+			 	<title>ChatBox - A WebSocket Demo</title>
 			 </head>
 			 <body>
 			 </body>
@@ -50,7 +51,7 @@ const class ChatboxRoutes {
 		WebSocket.make() {
 			ws := it
 			onMessage = |MsgEvent me| { 
-				webSockets.broadcast("${ws.id} says, '${me.msg}'")
+				webSockets.broadcast("${ws.id} says, '${me.txt}'")
 			}
 		}
 	}
@@ -68,13 +69,13 @@ class ChatboxClient {
 		}
 
 		webSock.onMessage = |MsgEvent msgEnv| {
-			convBox.text += "\r\n" + msgEnv.msg			
+			convBox.text += "\r\n" + msgEnv.txt			
 		}
 
 		textBox.onAction.add(sendMsg)
 
 		window := Window {
-			title = "WebSocket ChatBox Example"
+			title = "ChatBox - A WebSocket Demo"
 			InsetPane {
 				EdgePane {
 					center	= convBox
@@ -88,9 +89,10 @@ class ChatboxClient {
 		
 		if (Env.cur.runtime != "js") {
 			// ensure event funcs are run in the UI thread
-			safeMess := Unsafe(webSock.onMessage)
+			safeFunc := Unsafe(webSock.onMessage)
 			webSock.onMessage = |MsgEvent msgEnv| {
-				Desktop.callAsync |->| { safeMess.val->call(msgEnv) }
+				safeMess := Unsafe(msgEnv)
+				Desktop.callAsync |->| { safeFunc.val->call(safeMess.val) }
 			}
 
 			// call the blocking read() method in a background thread
@@ -103,3 +105,31 @@ class ChatboxClient {
 		window.open
 	}
 }
+
+class Builder : BuildPod {
+    new make() {
+        podName = "wsChatbox"
+        summary = "A WebSocket Demo"
+
+        meta = [
+            "proj.name"    : "ChatBox - A WebSocket Demo",
+            "afIoc.module" : "wsChatbox::AppModule",
+        ]
+
+        depends = [
+            "sys          1.0",
+            "fwt          1.0",
+            "web          1.0",
+            "build        1.0",
+            "concurrent   1.0",
+            "afIoc        2.0",
+            "afConcurrent 1.0",
+            "afBedSheet   1.4",
+            "afDuvet      1.0",
+            "afWebSockets   0+",
+        ]
+
+        srcDirs = [`Chatbox.fan`]
+    }
+}	
+

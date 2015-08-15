@@ -2,8 +2,8 @@
 internal class Frame {
 	FrameType	type
 	Buf			payload
-	Bool		fin
-	Bool		maskFrame
+	Bool		fin			:= true
+	Bool		maskFrame	:= false
 	Bool		rsv1
 	Bool		rsv2
 	Bool		rsv3
@@ -12,32 +12,29 @@ internal class Frame {
 		in(this)
 	}
 	
-	new makeTextFrame(Str text) {
+	new makeTextFrame(Str txt) {
 		this.type		= FrameType.text
-		this.payload	= text.toBuf(Charset.utf8)
-		this.fin		= true
-		this.maskFrame	= false
+		this.payload	= txt.toBuf(Charset.utf8)
+	}
+	
+	new makeBinaryFrame(Buf bin) {
+		this.type		= FrameType.binary
+		this.payload	= bin.seek(0).readAllBuf
 	}
 
 	new makePingFrame() {
 		this.type		= FrameType.ping
-		this.fin		= true
 		this.payload	= Buf(0)
-		this.maskFrame	= false
 	}
 
 	new makePongFrame() {
 		this.type		= FrameType.pong
-		this.fin		= true
 		this.payload	= Buf(0)
-		this.maskFrame	= false
 	}
 
 	new makeCloseFrame(Int? code, Str? reason) {
 		this.type		= FrameType.close
 		this.payload	= Buf((reason?.size ?: 0) + 2)
-		this.fin		= true
-		this.maskFrame	= false
 		
 		if (code != null) {
 			payload.writeI2(code)
@@ -52,17 +49,23 @@ internal class Frame {
 		return this
 	}
 
-	Str? payloadAsStr() {
+	Str payloadAsStr() {
 		try {
-			return (payload.remaining > 0) ? payload.in.readChars(payload.remaining) : null
+			return (payload.remaining > 0) ? payload.in.readChars(payload.remaining) : ""
 		} catch (IOErr ioe) {
 			throw CloseFrameErr(CloseCodes.invalidFramePayloadData, CloseMsgs.payloadNotStr)
 		}
 	}
+
+	Buf payloadAsBuf() {
+		buf := Buf(payload.remaining)
+		if (payload.remaining > 0)
+			payload.in.readBuf(buf, payload.remaining)
+		return buf
+	}
 	
 	** Writes this frame to the given OutStream
 	Void writeTo(OutStream out) {
-		// TODO: catch IOErr should OutStream be closed and throw unclean CloseFrameErr
 		byte		:= type.opCode
 		if (fin)	byte = byte.or(0x80)
 		if (rsv1)	byte = byte.or(0x40)

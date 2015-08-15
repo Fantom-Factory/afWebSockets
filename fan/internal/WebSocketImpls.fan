@@ -48,16 +48,16 @@ internal class WebSocketFan : WebSocket {
 		return ready(url, socket.in, socket.out)
 	}
 	
-	override This upgrade(WebReq req, WebRes res, Bool flush := true) {
+	override This upgrade(Obj webReq, Obj webRes, Bool flush := true) {
+		req := (WebReq) webReq
+		res := (WebRes) webRes
 		wsProtocol.shakeHandsWithClient(req, res, allowedOrigins)
 		return ready(req.modRel, req.in, res.out)
 	}
 
 	override Void close(Int? code := 1000, Str? reason := null) {
 		// when the client pongs the close frame back, we'll close the connection
-		readyState = ReadyState.closing
-		// FIXME: catch IOErr
-		writeFrame(Frame(code, reason))
+		CloseEvent { it.code = code; it.reason = reason }.writeFrame(this)
 	}
 
 	override Void read() {
@@ -65,10 +65,13 @@ internal class WebSocketFan : WebSocket {
 	}
 	
 	override Void sendText(Str data) {
-		// FIXME: catch IOErr
 		writeFrame(Frame(data))
 	}
 
+	override Void sendBinary(Buf data) {
+		writeFrame(Frame(data))
+	}
+	
 	Frame? readFrame() {
 		Frame.readFrom(reqIn)
 	}
@@ -124,7 +127,7 @@ internal class WebSocketJs : WebSocket {
 		return this
 	}
 	
-	override This upgrade(WebReq req, WebRes res, Bool flush := true) {
+	override This upgrade(Obj req, Obj res, Bool flush := true) {
 		throw UnsupportedErr("Only server side WebSockets may be upgraded")
 	}
 	override Void	read()		{ }
@@ -132,5 +135,6 @@ internal class WebSocketJs : WebSocket {
 	native override ReadyState	readyState()
 	native override Int 		bufferedAmount()
 	native override Void		sendText(Str data)	
+	native override Void		sendBinary(Buf data)	// FIXME: !!!
 	native override Void		close(Int? code := 1000, Str? reason := null)
 }
