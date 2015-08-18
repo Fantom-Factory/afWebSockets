@@ -1,16 +1,18 @@
-#WebSockets v0.0.0
+#WebSockets v0.0.2
 ---
 [![Written in: Fantom](http://img.shields.io/badge/written%20in-Fantom-lightgray.svg)](http://fantom.org/)
-[![pod: v0.0.0](http://img.shields.io/badge/pod-v0.0.0-yellow.svg)](http://www.fantomfactory.org/pods/afWebSockets)
+[![pod: v0.0.2](http://img.shields.io/badge/pod-v0.0.2-yellow.svg)](http://www.fantomfactory.org/pods/afWebSockets)
 ![Licence: MIT](http://img.shields.io/badge/licence-MIT-blue.svg)
 
 ## Overview
 
-`WebSockets` is a faithful implementation of the [W3C WebSocket API](http://www.w3.org/TR/websockets/) and adheres to [RFC 6455](http://tools.ietf.org/html/rfc6455).
+WebSockets is a faithful Fantom implementation of the [W3C WebSocket API](http://www.w3.org/TR/websockets/) and adheres to [RFC 6455](http://tools.ietf.org/html/rfc6455).
 
-The same `WebSocket` class may be used as a Fantom desktop client, a Javascript web client, or on a web server.
+The same `WebSocket` class may be used as a Fantom desktop client, a Javascript web client, or from a web server.
 
-Note that WebSockets does not currently support frame fragmentation or continuations.
+WebSockets does not currently support frame fragmentation or continuations.
+
+*Note that WebSockets requires the latest, and as yet unreleased, Fantom v1.0.68 to run. To use WebSockets, the core `inet`, `web` and `wisp` pods should be [built from source](https://bitbucket.org/fantom/fan-1.0/src) with a manually set version of `1.0.68` or greater.*
 
 ## Install
 
@@ -165,7 +167,7 @@ Due to the web client being Javascript compiled from Fantom code, Chatbox must f
                     "afConcurrent 1.0",
                     "afBedSheet   1.4",
                     "afDuvet      1.0",
-                    "afWebSockets   0+",
+                    "afWebSockets 0+",
                 ]
         
                 srcDirs = [`Chatbox.fan`]
