@@ -6,14 +6,14 @@ class Build : BuildPod {
 
 	new make() {
 		podName = "afWebSockets"
-		summary = "A WebSocket client / server implementation"
-		version = Version("0.0.1")
+		summary = "A pure Fantom implementation of the W3C WebSocket API for use by clients and servers"
+		version = Version("0.0.2")
 
 		meta	= [	
 			"proj.name"		: "WebSockets",
 			"afIoc.module"	: "afWebSockets::WebSocketsModule",
 			"repo.tags"		: "web",
-			"repo.public"	: "false",
+			"repo.public"	: "true"
 		]
 
 		index = [
@@ -23,12 +23,12 @@ class Build : BuildPod {
 		depends = [
 			"sys          1.0", 
 			"concurrent   1.0",
-			"inet         1.0",
-			"web          1.0.67 - 1.0",
+			"inet         1.0.68 - 1.0",
+			"web          1.0.68 - 1.0",
 			"afConcurrent 1.0.8  - 1.0",
 			
-			"fwt          1.0",
-			"afDuvet      1.0",
+//			"fwt          1.0",
+//			"afDuvet      1.0",
 			
 			// ---- for BedSheet only ----
 			"afIoc        2.0.10 - 2.0",
@@ -133,7 +133,7 @@ class ZipUtils {
 	** 
 	** Examples:
 	**   File.createTemp("x", "-etc") => `/tmp/x67392-etc/`
-	**   File.createTemp.deleteOnExit => `/tmp/fan5284/`
+	**   File.createTemp.deleteOnExit => `/tmp/fan-5284/`
 	**
 	** See the Fantom forum topic [File.createTempDir()]`http://fantom.org/forum/topic/2424`.
 	static File createTempDir(Str prefix := "fan-", Str suffix := "", File? dir := null) {
