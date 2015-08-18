@@ -1,6 +1,6 @@
 Overview
 ********
-WebSockets is a faithful Fantom implementation of the [W3C WebSocket API]`http://www.w3.org/TR/websockets/` and adheres to [RFC 6455]`http://tools.ietf.org/html/rfc6455`.
+WebSockets is a Fantom implementation of the [W3C WebSocket API]`http://www.w3.org/TR/websockets/` and adheres to [RFC 6455]`http://tools.ietf.org/html/rfc6455`.
 
 The same 'WebSocket' class may be used as a Fantom desktop client, a Javascript web client, or from a web server.
 
