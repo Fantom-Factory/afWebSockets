@@ -1,5 +1,8 @@
 Versions
 ********
+v0.0.4
+------
+ - Bug: Fixed JS error on WebSocket close when no event handler was defined.
 
 v0.0.2
 ------

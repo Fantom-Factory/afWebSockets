@@ -34,15 +34,14 @@ fan.afWebSockets.WebSocketJsPeer.prototype.connect = function(self, url, protoco
 	};
 
 	self.webSocket.onerror = function(event) {
-		console.warn(event);
-		var onError = $this.onError();
+		var onError = self.onError();
 		if (onError == null) return;
 		onError.call(fan.sys.Err.make("Error"));
 	};
 
 	self.webSocket.onclose = function(event) {
 		var onClose = self.onClose();
-		if (onClose == null) null;
+		if (onClose == null) return;
 		var closeEvent = fan.afWebSockets.CloseEvent.make(
 			fan.sys.Func.make(
 				fan.sys.List.make(fan.sys.Param.$type, [new fan.sys.Param("it", "afWebSockets::CloseEvent", false)]),
