@@ -2,6 +2,8 @@ Versions
 ********
 v0.0.4
 ------
+ - Chg: 'WebSocket.sendXXX()' methods throw an Err if it has not been opened / upgraded.
+ - Chg: 'WebSockets.service()' won't attempt to upgrade open connections.
  - Bug: Fixed JS error on WebSocket close when no event handler was defined.
 
 v0.0.2

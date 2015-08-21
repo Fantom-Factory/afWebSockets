@@ -65,10 +65,14 @@ internal class WebSocketFan : WebSocket {
 	}
 	
 	override Void sendText(Str data) {
+		if (readyState == ReadyState.connecting)
+			throw Err("WebSocket has not been opened / upgraded")
 		writeFrame(Frame(data))
 	}
 
 	override Void sendBinary(Buf data) {
+		if (readyState == ReadyState.connecting)
+			throw Err("WebSocket has not been opened / upgraded")
 		writeFrame(Frame(data))
 	}
 	
