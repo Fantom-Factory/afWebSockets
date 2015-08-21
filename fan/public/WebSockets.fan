@@ -75,25 +75,27 @@ internal const class WebSocketsImpl : WebSockets {
 	}
 	
 	override Void service(WebSocket webSocket, WebReq req, WebRes res) {
-		webSocketImpl := (WebSocketFan) webSocket
 
-		try {
-			webSocketImpl.upgrade(req, res, false)
-			
-		} catch (IOErr wsErr) {
-			log.warn(wsErr.msg)
-			if (res.statusCode == 200)
-				res.statusCode = 400
-			return
+		// the socket may have been manually upgraded before being passed to us
+		if (webSocket.readyState == ReadyState.connecting) {
+			try {
+				webSocket.upgrade(req, res, false)
+				
+			} catch (IOErr wsErr) {
+				log.warn(wsErr.msg)
+				if (res.statusCode == 200)
+					res.statusCode = 400
+				return
+			}
+
+			// allow others to mess with the connection
+			// they may want to add protocols and extensions
+			req.socketOptions.receiveTimeout = socketReadTimeOut
+			onUpgrade?.call(req, res, webSocket)
+	
+			// connection established
+			res.out.flush			
 		}
-
-		// allow others to mess with the connection
-		// they may want to add protocols and extensions
-		req.socketOptions.receiveTimeout = socketReadTimeOut
-		onUpgrade?.call(req, res, webSocket)
-
-		// connection established
-		res.out.flush
 
 		unsafeWs := Unsafe(webSocket)
 		try {
