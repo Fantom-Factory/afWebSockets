@@ -52,7 +52,10 @@ internal class WebSocketFan : WebSocket {
 		req := (WebReq) webReq
 		res := (WebRes) webRes
 		wsProtocol.shakeHandsWithClient(req, res, allowedOrigins)
-		return ready(req.modRel, req.in, res.out)
+		out := res.out
+		if (flush)
+			out.flush
+		return ready(req.modRel, req.in, out)
 	}
 
 	override Void close(Int? code := 1000, Str? reason := null) {

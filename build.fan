@@ -27,8 +27,8 @@ class Build : BuildPod {
 			"web          1.0.68 - 1.0",
 			"afConcurrent 1.0.8  - 1.0",
 			
-//			"fwt          1.0",
-//			"afDuvet      1.0",
+			"fwt          1.0",
+			"afDuvet      1.0",
 			
 			// ---- for BedSheet only ----
 			"afIoc        2.0.10 - 2.0",

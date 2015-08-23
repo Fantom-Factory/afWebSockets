@@ -3,10 +3,10 @@ internal class Frame {
 	FrameType	type
 	Buf			payload
 	Bool		fin			:= true
-	Bool		maskFrame	:= false
 	Bool		rsv1
 	Bool		rsv2
 	Bool		rsv3
+	Bool		maskFrame	:= false
 	
 	private new make(|This|in) {
 		in(this)
@@ -67,35 +67,21 @@ internal class Frame {
 	** Writes this frame to the given OutStream
 	Void writeTo(OutStream out) {
 		byte		:= type.opCode
+		
 		if (fin)	byte = byte.or(0x80)
 		if (rsv1)	byte = byte.or(0x40)
 		if (rsv2)	byte = byte.or(0x20)
 		if (rsv3)	byte = byte.or(0x10)
-
 		out.write(byte)
 
-		byte	= payload.size
-		size2	:= (Int?) null
-		size8	:= (Int?) null
-
-		if (payload.size > 125) {
-			byte	= 126
-			size2	= payload.size 
-		}
-		if (payload.size > 2.pow(2*8)) {
-			byte	= 127
-			size2	= null 
-			size8	= payload.size 
-		}
+		mask := maskFrame ? 0x80 : 0x00
+		if (payload.size <= 125)
+			out.write(payload.size.or(mask))
+		else if (payload.size <= 0xFFFF)
+			out.write(126.or(mask)).writeI2(payload.size)
+		else
+			out.write(127.or(mask)).writeI8(payload.size)
 		
-		if (maskFrame)
-			byte	= byte.or(0x80)
-		out.write(byte)
-		if (size2 != null)
-			out.writeI2(size2)
-		if (size8 != null)
-			out.writeI2(size8)
-
 		if (maskFrame) {
 			maskBuf := Buf.random(4)
 			out.writeBuf(maskBuf)
@@ -103,10 +89,8 @@ internal class Frame {
 				j := maskBuf[i.mod(4)]
 				out.write(payload[i].xor(j))
 			}
-		} else {
-			payload.seek(0)
-			out.writeBuf(payload)
-		}
+		} else
+			out.writeBuf(payload.seek(0))
 		
 		// flush it down the pipe...
 		out.flush
@@ -132,7 +116,7 @@ internal class Frame {
 		if (length == 126)
 			length = in.readU2
 		if (length == 127) 
-			// I know it's signed, but spec says "the most significant bit MUST be 0"
+			// I know readS8 is signed, but spec says "the most significant bit MUST be 0"
 			length = in.readS8
 		
 		if (length < 0)
