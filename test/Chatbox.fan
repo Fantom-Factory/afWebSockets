@@ -55,7 +55,7 @@ internal const class ChatboxRoutes {
 			}
 		}.upgrade(webReq, webRes)
 //		bigTxt := Buf.random(160000).toBase64
-		bigTxt := Buf.random(1600).toBase64
+		bigTxt := Buf.random(0xffff).toBase64
 		echo("sending $bigTxt.size bytes")
 		ws.sendText(bigTxt)
 		return ws
@@ -73,7 +73,7 @@ internal const class ChatboxRoutes {
 @Js
 internal class ChatboxClient {
 	Void main() {
-		webSock := WebSocket.make().open(`ws://localhost:8069/ws`)
+		webSock := WebSocket.make()
 		convBox := Text { text = "The conversation:\r\n"; multiLine = true; editable = false }
 		textBox := Text { text = "Say somethingz!" }
 		sendMsg := |Event e| {
@@ -110,22 +110,25 @@ internal class ChatboxClient {
 		
 		// desktop only code
 		if (Env.cur.runtime != "js") {
-			// ensure event funcs are run in the UI thread
-			safeFunc := Unsafe(webSock.onMessage)
-			webSock.onMessage = |MsgEvent msgEnv| {
-				echo("got msg")
-				safeMess := Unsafe(msgEnv)
-				Desktop.callAsync |->| { safeFunc.val->call(safeMess.val) }
-			}
-
-			// call the blocking read() method in a background thread
-			safeSock := Unsafe(webSock)
-			Synchronized(ActorPool()).async |->| {
-				try
-					safeSock.val->read
-				catch (Err err) err.trace
+			window.onOpen.add |->| {
+				// ensure event funcs are run in the UI thread
+				safeFunc := Unsafe(webSock.onMessage)
+				webSock.onMessage = |MsgEvent msgEnv| {
+					echo("got msg")
+					safeMess := Unsafe(msgEnv)
+					Desktop.callAsync |->| { safeFunc.val->call(safeMess.val) }
+				}
+					
+				// call the blocking read() method in a background thread
+				safeSock := Unsafe(webSock)
+				Synchronized(ActorPool()).async |->| {
+					try
+						safeSock.val->read
+					catch (Err err) err.trace
+				}				
 			}
 		}
+		webSock.open(`ws://localhost:8069/ws`)
 
 		window.open
 	}

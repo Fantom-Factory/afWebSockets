@@ -90,12 +90,12 @@ internal const class WebSocketsImpl : WebSockets {
 
 			// allow others to mess with the connection
 			// they may want to add protocols and extensions
-			req.socketOptions.receiveTimeout = socketReadTimeOut
 			onUpgrade?.call(req, res, webSocket)
-	
-			// connection established
-			res.out.flush			
 		}
+
+		// connection established
+		req.socketOptions.receiveTimeout = socketReadTimeOut
+		res.out.flush			
 
 		unsafeWs := Unsafe(webSocket)
 		try {
