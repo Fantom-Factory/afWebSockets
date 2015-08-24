@@ -69,15 +69,14 @@ internal class TestWsProcessing : WsTest {
 		verifyEq(closeEvent.reason, 	CloseMsgs.frameNotMasked)
 	}
 
-	Void testBinaryFrameClosesConnection() {
+	Void testBinaryFrameIsOkay() {
 		Frame.makeTextFrame("wotever") { it.type = FrameType.binary }.fromClient.writeTo(reqInBuf.out)
 		reqInBuf.flip
 
-		wsCore.process(webSocket)
-		verifyNull(msgEvent)
-		verifyEq(closeEvent.wasClean, 	true)
-		verifyEq(closeEvent.code, 		CloseCodes.unsupportedData)
-		verifyEq(closeEvent.reason, 	CloseMsgs.unsupportedFrame(FrameType.binary))
+		wsCore.process	(webSocket)
+		verifyNotNull	(msgEvent)
+		verifyNull		(msgEvent.txt)
+		verifyNotNull	(msgEvent.buf)
 	}
 
 	Void testClientCloseCodeIsPingedBack() {

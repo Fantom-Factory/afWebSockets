@@ -120,7 +120,7 @@ internal const class WsProtocol {
 				if (frame.type == FrameType.close) {
 					webSocket.readyState = ReadyState.closing
 					closeCode 	:= (frame.payload.remaining >= 2) ? frame.payload.readU2 : CloseCodes.noStatusRcvd
-					closeReason	:= (closeCode == CloseCodes.noStatusRcvd) ? null : frame.payloadAsStr
+					closeReason	:= (closeCode == CloseCodes.noStatusRcvd) ? null : frame.payloadAsStr.trimToNull
 					exitErr 	= CloseFrameErr(closeCode, closeReason)
 					continue
 				}
