@@ -1,29 +1,46 @@
 using afIoc
 using afBedSheet
 using concurrent::ActorPool
+using afConcurrent::ActorPools
 
 @NoDoc
-class WebSocketsModule {
+const class WebSocketsModule {
 	
-	@Build
-	static WebSockets buildWebSockets(ActorPools actorPools) {
-		WebSockets(actorPools["afWebSockets"]) {
-			it.socketReadTimeOut = 5min
-		}
-	}
-	
-	@Contribute { serviceType=ResponseProcessors# }
-	static Void contributeResponseProcessors(Configuration conf) {
-		conf[WebSocket#] = conf.autobuild(WebSocketResponseProcessor#)
-	}
+	Str:Obj nonInvasiveIocModule() {
+		[
+			"services"	: [
+				[
+					"id"		: WebSockets#.qname,
+					"type"		: WebSockets#,
+					"scopes"	: ["root"],
+					"builder"	: |Obj scope->Obj| {
+						actorPools := (ActorPools) scope->serviceById(ActorPools#.qname)
+						return WebSockets(actorPools["afWebSockets"]) {
+							it.socketReadTimeOut = 5min
+						}						
+					}
+				]
+			],
 
-	@Contribute { serviceType=ActorPools# }
-	static Void contributeActorPools(Configuration config) {
-		config["afWebSockets"] = ActorPool() { it.name = "afWebSockets" }
-	}
-	
-	@Contribute { serviceType=RegistryShutdown# }
-	static Void contributeRegistryShutdown(Configuration config, WebSockets webSockets) {
-		config["afWebSockets.shutdown"] = |->| { webSockets.shutdown }
+			"contributions" : [
+				[
+					"serviceId"	: ActorPools#.qname,
+					"key"		: "afWebSockets",
+					"value"		: ActorPool() { it.name = "afWebSockets" }
+				],
+				[
+					"serviceId"	: "afBedSheet::ResponseProcessors",
+					"key"		: WebSocket#,
+					"build"		: WebSocketResponseProcessor#
+				],
+				[
+					"serviceId"	: "registryShutdown",
+					"key"		: "afWebSockets.shutdown",
+					"valueFunc"	: |WebSockets webSockets| {
+						webSockets.shutdown
+					}
+				]
+			]
+		]
 	}
 }
