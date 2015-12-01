@@ -20,7 +20,7 @@
     	}
     }
     
-    class AppModule {
+    const class AppModule {
     	@Contribute { serviceType=Routes# }
     	static Void contributeRoutes(Configuration conf) {
     		conf.add(Route(`/`, 	ChatboxRoutes#indexPage))
@@ -123,11 +123,11 @@
                 "web          1.0",
                 "build        1.0",
                 "concurrent   1.0",
-                "afIoc        2.0",
+                "afIoc        3.0",
                 "afConcurrent 1.0",
-                "afBedSheet   1.4",
-                "afDuvet      1.0",
-                "afWebSockets   0+",
+                "afBedSheet   1.5",
+                "afDuvet      1.1",
+                "afWebSockets 0.1",
             ]
     
             srcDirs = [`Chatbox.fan`]
