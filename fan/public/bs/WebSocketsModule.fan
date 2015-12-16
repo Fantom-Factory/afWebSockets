@@ -36,8 +36,8 @@ const class WebSocketsModule {
 				[
 					"serviceId"	: "registryShutdown",
 					"key"		: "afWebSockets.shutdown",
-					"valueFunc"	: |WebSockets webSockets| {
-						webSockets.shutdown
+					"valueFunc"	: |WebSockets webSockets->Func| {
+						|->| { webSockets.shutdown }
 					}
 				]
 			]
