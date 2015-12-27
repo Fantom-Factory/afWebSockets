@@ -43,6 +43,14 @@ const class CloseEvent {
 	
 	@NoDoc
 	override Str toStr() {
-		(wasClean ? "Clean" : "Unclean") + " close - ${code}: ${reason}"
+		str := (wasClean ? "Clean" : "Unclean") + " close"
+		if (code != null) {
+			str += " - ${code}"
+			if (reason.trimToNull != null && reason.trim != "null")
+				str += ": ${reason}"
+		} else
+			if (reason.trimToNull != null && reason.trim != "null")
+				str += " - ${reason}"
+		return str
 	}
 }
