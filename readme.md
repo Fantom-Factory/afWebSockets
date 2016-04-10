@@ -48,101 +48,110 @@ Due to the web client being Javascript compiled from Fantom code, Chatbox must f
         using build::BuildPod
         
         class Main {
-            Void main(Str[] args) {
-                if (args.first == "-client")
-                    ChatboxClient().main
-                if (args.first == "-server")
-                    BedSheetBuilder(AppModule#.qname).startWisp(8069)
-                if (args.first == "-build")
-                    Builder().main
-            }
+        	Void main(Str[] args) {
+        		if (args.first == "-client")
+        			ChatboxClient().main
+        		if (args.first == "-server")
+        			BedSheetBuilder(AppModule#.qname).addModulesFromPod("afWebSockets").startWisp(8069)
+        		if (args.first == "-build")
+        			Builder().main
+        	}
         }
         
         const class AppModule {
-            @Contribute { serviceType=Routes# }
-            Void contributeRoutes(Configuration conf) {
-                conf.add(Route(`/`,     ChatboxRoutes#indexPage))
-                conf.add(Route(`/ws`,   ChatboxRoutes#serviceWebSocket))
-            }
+        	@Contribute { serviceType=Routes# }
+        	Void contributeRoutes(Configuration conf) {
+        		conf.add(Route(`/`, 	ChatboxRoutes#indexPage))
+        		conf.add(Route(`/ws`,	ChatboxRoutes#serviceWebSocket))
+        	}
         }
         
         const class ChatboxRoutes {
-            @Inject private const WebSockets    webSockets
-            @Inject private const HtmlInjector  htmlInjector
+        	@Inject private const WebSockets	webSockets
+        	@Inject private const HtmlInjector	htmlInjector
         
-            new make(|This|in) { in(this) }
+        	new make(|This|in) { in(this) }
         
-            BsText indexPage() {
-                htmlInjector.injectFantomMethod(ChatboxClient#main)
-                return BsText.fromHtml(
-                    "<!DOCTYPE html>
-                     <html>
-                     <head>
-                        <title>ChatBox - A WebSocket Demo</title>
-                     </head>
-                     <body>
-                     </body>
-                     </html>")
-            }
+        	BsText indexPage() {
+        		htmlInjector.injectFantomMethod(ChatboxClient#main)
+        		return BsText.fromHtml(
+        			"<!DOCTYPE html>
+        			 <html>
+        			 <head>
+        			 	<title>ChatBox - A WebSocket Demo</title>
+        			 </head>
+        			 <body>
+        			 </body>
+        			 </html>")
+        	}
         
-            WebSocket serviceWebSocket() {
-                WebSocket.make() {
-                    ws := it
-                    onMessage = |MsgEvent me| {
-                        webSockets.broadcast("${ws.id} says, '${me.txt}'")
-                    }
-                }
-            }
+        	WebSocket serviceWebSocket() {
+        		WebSocket.make() {
+        			ws := it
+        			onMessage = |MsgEvent me| {
+        				webSockets.broadcast("${ws.id} says, '${me.txt}'")
+        			}
+        		}
+        	}
         }
         
         @Js
         class ChatboxClient {
-            Void main() {
-                webSock := WebSocket.make().open(`ws://localhost:8069/ws`)
-                convBox := Text { text = "The conversation:\r\n"; multiLine = true; editable = false }
-                textBox := Text { text = "Say something!" }
-                sendMsg := |Event e| {
-                    webSock.sendText(textBox.text)
-                    textBox.text = ""
+        	Void main() {
+        		webSock := WebSocket.make().open(`ws://localhost:8069/ws`)
+        		convBox := Text { text = "The conversation:\r\n"; multiLine = true; editable = false }
+        		textBox := Text { text = "Say something!" }
+        		sendMsg := |Event e| {
+        			webSock.sendText(textBox.text)
+        			textBox.text = ""
+        		}
+        
+        		webSock.onMessage = |MsgEvent msgEnv| {
+        			convBox.text += "\r\n" + msgEnv.txt
+        		}
+        
+        		textBox.onAction.add(sendMsg)
+        
+        		window := Window {
+        			title = "ChatBox - A WebSocket Demo"
+        			InsetPane {
+        				EdgePane {
+        					center	= convBox
+        					bottom	= EdgePane {
+        						center	= textBox
+        						right	= Button { text = "Send"; onAction.add(sendMsg) }
+        					}
+        				},
+        			},
                 }
+
+
+
+  // desktop only code
+
+
+
+        if (Env.cur.runtime != "js") {
+        	// ensure event funcs are run in the UI thread
+        	safeFunc := Unsafe(webSock.onMessage)
+        	webSock.onMessage = |MsgEvent msgEnv| {
+        		safeMess := Unsafe(msgEnv)
+        		Desktop.callAsync |->| { safeFunc.val->call(safeMess.val) }
+        	}
         
-                webSock.onMessage = |MsgEvent msgEnv| {
-                    convBox.text += "\r\n" + msgEnv.txt
-                }
+        	// call the blocking read() method in a background thread
+        	safeSock := Unsafe(webSock)
+        	Synchronized(ActorPool()).async |->| {
+        		safeSock.val->read
+        	}
+        }
         
-                textBox.onAction.add(sendMsg)
+        window.open
         
-                window := Window {
-                    title = "ChatBox - A WebSocket Demo"
-                    InsetPane {
-                        EdgePane {
-                            center  = convBox
-                            bottom  = EdgePane {
-                                center  = textBox
-                                right   = Button { text = "Send"; onAction.add(sendMsg) }
-                            }
-                        },
-                    },
-                }
         
-                // Desktop only code
-                if (Env.cur.runtime != "js") {
-                    // ensure event funcs are run in the UI thread
-                    safeFunc := Unsafe(webSock.onMessage)
-                    webSock.onMessage = |MsgEvent msgEnv| {
-                        safeMess := Unsafe(msgEnv)
-                        Desktop.callAsync |->| { safeFunc.val->call(safeMess.val) }
-                    }
+        }
         
-                    // call the blocking read() method in a background thread
-                    safeSock := Unsafe(webSock)
-                    Synchronized(ActorPool()).async |->| {
-                        safeSock.val->read
-                    }
-                }
         
-                window.open
-            }
         }
         
         class Builder : BuildPod {
@@ -156,16 +165,16 @@ Due to the web client being Javascript compiled from Fantom code, Chatbox must f
                 ]
         
                 depends = [
-                    "sys          1.0",
-                    "fwt          1.0",
-                    "web          1.0",
-                    "build        1.0",
-                    "concurrent   1.0",
-                    "afIoc        2.0",
-                    "afConcurrent 1.0",
-                    "afBedSheet   1.4",
-                    "afDuvet      1.0",
-                    "afWebSockets 0+",
+                    "sys          1.0.68 - 1.0",
+                    "fwt          1.0.68 - 1.0",
+                    "web          1.0.68 - 1.0",
+                    "build        1.0.68 - 1.0",
+                    "concurrent   1.0.68 - 1.0",
+                    "afIoc        3.0.0  - 3.0",
+                    "afConcurrent 1.0.0  - 1.0",
+                    "afBedSheet   1.5.0  - 1.5",
+                    "afDuvet      1.1.0  - 1.1",
+                    "afWebSockets 0.1.0  - 0.1",
                 ]
         
                 srcDirs = [`Chatbox.fan`]
@@ -192,43 +201,24 @@ Due to the web client being Javascript compiled from Fantom code, Chatbox must f
         C:\> fan wsChatbox -server
         
         [info] [afBedSheet] Found mod 'wsChatbox::AppModule'
-        [info] [afIoc] Adding module definitions from pod 'wsChatbox'
-        [info] [afIoc] Adding module definition for wsChatbox::AppModule
-        [info] [afIoc] Adding module definition for afBedSheet::BedSheetModule
-        [info] [afIoc] Adding module definition for afIocConfig::ConfigModule
-        [info] [afIoc] Adding module definition for afBedSheet::BedSheetEnvModule
-        [info] [afIoc] Adding module definition for afIocEnv::IocEnvModule
-        [info] [afIoc] Adding module definition for afDuvet::DuvetModule
-        [info] [afIoc] Adding module definition for afWebSockets::WebSocketsModule
-        [info] [afBedSheet] Starting Bed App 'ChatBox - A WebSocket Demo' on port 8069
+        [info] [afBedSheet] Starting Bed App 'wsChatbox' on port 8069
         [info] [web] http started on port 8069
-        [info] [afIocEnv] Setting from environment variable 'env' : development
-        
-        Duvet is configured with 10 RequireJS modules:
-        
-          afConcurrent : /pods/afConcurrent/afConcurrent
-               afDuvet : /pods/afDuvet/afDuvet
-          afWebSockets : /pods/afWebSockets/afWebSockets
-            concurrent : /pods/concurrent/concurrent
-                   fwt : /pods/fwt/fwt
-                   gfx : /pods/gfx/gfx
-                   sys : /pods/sys/sys
-                  util : /pods/util/util
-                   web : /pods/web/web
-             wsChatbox : /pods/wsChatbox/wsChatbox
-        
-        48 IoC Services:
-          10 Builtin
-          27 Defined
-           0 Proxied
-          11 Created
-        
-        56.25% of services are unrealised (27/48)
+        [info] [afIoc] Adding module definitions from pod 'afWebSockets'
+        [info] [afIoc] Adding module definition for wsChatbox::AppModule
+        [info] [afIoc] Adding module afWebSockets::WebSocketsModule
+        [info] [afIoc] Adding module afConcurrent::ConcurrentModule
+        [info] [afIoc] Adding module afBedSheet::BedSheetModule
+        [info] [afIoc] Adding module afIocConfig::ConfigModule
+        [info] [afIoc] Adding module afIocEnv::IocEnvModule
+        [info] [afIoc] Adding module afDuvet::DuvetModule
+        [info] [afIoc] Adding module wsChatbox::AppModule
+        [info] [afIoc] Adding module afBedSheet::BedSheetEnvModule
+         ....
            ___    __                 _____        _
           / _ |  / /_____  _____    / ___/__  ___/ /_________  __ __
          / _  | / // / -_|/ _  /===/ __// _ \/ _/ __/ _  / __|/ // /
         /_/ |_|/_//_/\__|/_//_/   /_/   \_,_/__/\__/____/_/   \_, /
-                 Alien-Factory BedSheet v1.4.14, IoC v2.0.10 /___/
+                   Alien-Factory BedSheet v1.5.0, IoC v3.0.0 /___/
         
         IoC Registry built in 200ms and started up in 78ms
         
