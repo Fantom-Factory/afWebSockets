@@ -7,13 +7,13 @@ class Build : BuildPod {
 	new make() {
 		podName = "afWebSockets"
 		summary = "A pure Fantom implementation of the W3C WebSocket API for use by clients and servers"
-		version = Version("0.1.0")
+		version = Version("0.1.1")
 
 		meta	= [	
 			"proj.name"		: "WebSockets",
 			"afIoc.module"	: "afWebSockets::WebSocketsModule",
 			"repo.tags"		: "web",
-			"repo.public"	: "true"
+			"repo.public"	: "false"
 		]
 
 		depends = [
