@@ -36,6 +36,8 @@ const class CloseEvent {
 	internal Void writeFrame(WebSocket webSocket) {
 		webSock := (WebSocketFan) webSocket
 		webSock.readyState = ReadyState.closing
+		
+		// this writeFrame() method is always called within the context of "WebSocketFan" - so no JS
 		frame := Frame.makeCloseFrame(code, reason)
 		try webSock.writeFrame(frame)
 		catch { /* meh */ }
