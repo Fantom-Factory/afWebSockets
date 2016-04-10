@@ -13,20 +13,15 @@ class Build : BuildPod {
 			"proj.name"		: "WebSockets",
 			"afIoc.module"	: "afWebSockets::WebSocketsModule",
 			"repo.tags"		: "web",
-			"repo.public"	: "false"
-		]
-
-		index = [
-			"afIoc.module"	: "afWebSockets::WebSocketsModule" 
+			"repo.public"	: "true"
 		]
 
 		depends = [
-			"sys          1.0", 
-//			"sys          1.0.68 - 1.0", 
+			"sys          1.0.68 - 1.0", 
 			"concurrent   1.0.68 - 1.0",
 			"inet         1.0.68 - 1.0",
 			"web          1.0.68 - 1.0",
-			"afConcurrent 1.0.8  - 1.0",
+			"afConcurrent 1.0.12 - 1.0",
 			
 			// ---- for BedSheet only ----
 			"afIoc        3.0.0  - 3.0",
@@ -37,7 +32,7 @@ class Build : BuildPod {
 			"afDuvet      1.1"
 		]
 
-		srcDirs = [`test/`, `fan/`, `fan/public/`, `fan/public/bs/`, `fan/internal/`]
+		srcDirs = [`fan/`, `fan/internal/`, `fan/public/`, `fan/public/bs/`, `test/`]
 		resDirs = [`doc/`]
 		jsDirs 	= [`js/`]
 	}
@@ -48,7 +43,7 @@ class Build : BuildPod {
 		super.compile
 		
 		// remove afIoc and afBedSheet from the depends list
-		log.printLine("Removing Ioc and BedSheet from pod depends")
+		log.info("Removing Ioc and BedSheet from pod depends")
 		toRemove	:= "afIoc afBedSheet afDuvet fwt".split
 		tempDir		:= ZipUtils.unzip(podFile, ZipUtils.createTempDir("ws-")).deleteOnExit
 		propsFile	:= tempDir + `meta.props`

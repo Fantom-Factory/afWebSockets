@@ -14,7 +14,7 @@
     		if (args.first == "-client")
     			ChatboxClient().main
     		if (args.first == "-server")
-    			BedSheetBuilder(AppModule#.qname).startWisp(8069)
+    			BedSheetBuilder(AppModule#.qname).addModulesFromPod("afWebSockets").startWisp(8069)
     		if (args.first == "-build")
     			Builder().main
     	}
@@ -22,7 +22,7 @@
     
     const class AppModule {
     	@Contribute { serviceType=Routes# }
-    	static Void contributeRoutes(Configuration conf) {
+    	Void contributeRoutes(Configuration conf) {
     		conf.add(Route(`/`, 	ChatboxRoutes#indexPage))
     		conf.add(Route(`/ws`,	ChatboxRoutes#serviceWebSocket))
     	}
@@ -118,16 +118,16 @@
             ]
     
             depends = [
-                "sys          1.0",
-                "fwt          1.0",
-                "web          1.0",
-                "build        1.0",
-                "concurrent   1.0",
-                "afIoc        3.0",
-                "afConcurrent 1.0",
-                "afBedSheet   1.5",
-                "afDuvet      1.1",
-                "afWebSockets 0.1",
+                "sys          1.0.68 - 1.0",
+                "fwt          1.0.68 - 1.0",
+                "web          1.0.68 - 1.0",
+                "build        1.0.68 - 1.0",
+                "concurrent   1.0.68 - 1.0",
+                "afIoc        3.0.0  - 3.0",
+                "afConcurrent 1.0.0  - 1.0",
+                "afBedSheet   1.5.0  - 1.5",
+                "afDuvet      1.1.0  - 1.1",
+                "afWebSockets 0.1.0  - 0.1",
             ]
     
             srcDirs = [`Chatbox.fan`]

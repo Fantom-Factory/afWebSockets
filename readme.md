@@ -12,8 +12,6 @@ The same `WebSocket` class may be used as a Fantom desktop client, a Javascript 
 
 WebSockets does not currently support frame fragmentation or continuations.
 
-*Note that WebSockets requires the latest, and as yet unreleased, Fantom v1.0.68 to run. To use WebSockets, the core `inet`, `web` and `wisp` pods should be [built from source](https://bitbucket.org/fantom/fan-1.0/src) with a manually set version of `1.0.68` or greater.*
-
 ## Install
 
 Install `WebSockets` with the Fantom Repository Manager ( [fanr](http://fantom.org/doc/docFanr/Tool.html#install) ):
@@ -60,9 +58,9 @@ Due to the web client being Javascript compiled from Fantom code, Chatbox must f
             }
         }
         
-        class AppModule {
+        const class AppModule {
             @Contribute { serviceType=Routes# }
-            static Void contributeRoutes(Configuration conf) {
+            Void contributeRoutes(Configuration conf) {
                 conf.add(Route(`/`,     ChatboxRoutes#indexPage))
                 conf.add(Route(`/ws`,   ChatboxRoutes#serviceWebSocket))
             }

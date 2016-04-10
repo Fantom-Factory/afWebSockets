@@ -1,13 +1,17 @@
 Versions
 ********
+v0.1.0
+======
+ - Chg: Upgraded to be compatible with [BedSheet 1.5]`pod:afBedSheet` and [IoC 3]`pod:afIoc`.
+
 v0.0.4
-------
+======
  - Chg: 'WebSocket.sendXXX()' methods throw an Err if it has not been opened / upgraded.
  - Chg: 'WebSockets.service()' won't attempt to upgrade open connections.
  - Bug: Could not read / write large frames.
  - Bug: Fixed JS error on WebSocket close when no event handler was defined.
 
 v0.0.2
-------
+======
  - New: Preview release.
 
