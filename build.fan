@@ -13,7 +13,7 @@ class Build : BuildPod {
 			"pod.dis"		: "WebSockets",
 			"afIoc.module"	: "afWebSockets::WebSocketsModule",
 			"repo.tags"		: "web",
-			"repo.public"	: "false"
+			"repo.public"	: "true"
 		]
 
 		depends = [
