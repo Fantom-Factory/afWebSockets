@@ -114,7 +114,7 @@ abstract class WebSocket {
 	** 
 	**   syntax: fantom
 	**   webSock := WebSocket.create()
-	static new create() {
+	static new make() {
 		Env.cur.runtime == "js" ? WebSocketJs() : WebSocketFan()
 	}
 

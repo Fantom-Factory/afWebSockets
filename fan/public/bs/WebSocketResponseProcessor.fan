@@ -10,13 +10,8 @@ internal const class WebSocketResponseProcessor : ResponseProcessor {
 	new make(|This| in) { in(this)	}
 
 	override Obj process(Obj webSocket) {
-		try {
 		webSock := (WebSocket) webSocket
 		webSockets.service(webSock, req, res)
-			
-		} catch (Err err) {
-			err.trace
-		}
 		return true
 	}
 	
