@@ -84,8 +84,6 @@ internal const class WsProtocol {
 		res.headers["Sec-WebSocket-Accept"]	= resKey
 		res.statusCode = 101
 		return req.socket
-		
-//		return res.upgrade(101)
 	}
 	
 	Void process(WebSocketFan webSocket) {

@@ -21,11 +21,12 @@ const mixin WebSockets {
 	abstract Duration? socketReadTimeOut
 
 	** Hook to allow negotiation of websocket protocols and extensions.
-	** Called after the socket upgrade has been verified.
+	** Called after the socket upgrade has been verified but before the response has been committed 
+	** (and before the response headers have been sent). 
 	** 
 	** This field may be set at any time.
-	abstract |TcpSocket, WebSocket|? onUpgrade
-	
+	abstract |WebReq, WebRes, WebSocket, TcpSocket|? onUpgrade
+
 	** Creates a 'WebSockets' instance. 
 	static new make(ActorPool actorPool, |This|? f := null) {
 		WebSocketsImpl(actorPool, f)
@@ -62,7 +63,7 @@ internal const class WebSocketsImpl : WebSockets {
 		set { readTimeOutRef.val = it	}
 	}
 
-	override |TcpSocket, WebSocket|? onUpgrade {
+	override |WebReq, WebRes, WebSocket, TcpSocket|? onUpgrade {
 		get { onUpgradeRef.val 		}
 		set { onUpgradeRef.val = it	}		
 	}
@@ -95,15 +96,9 @@ internal const class WebSocketsImpl : WebSockets {
 			// allow others to mess with the connection
 			// they may want to add protocols and extensions
 			if (onUpgrade != null)
-				onUpgrade.call(socket, webSocket)
+				onUpgrade.call(req, res, webSocket, socket)
 
-			// we can't flush until we've set a content-length
-			// any value other than 0 should be invalid, but anyway...
-			if (!res.headers.containsKey("Content-Length"))
-				res.headers["Content-Length"] = "0"
-			
-			// call 'res.out()' to force the response headers to be written and commit the response
-			res.out.flush
+			res.upgrade(101)
 		}
 
 		// connection established

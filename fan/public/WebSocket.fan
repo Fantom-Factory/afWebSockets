@@ -128,13 +128,13 @@ abstract class WebSocket {
 	abstract This open(Uri url, Str[]? protocols := null)
 
 	** Upgrades the given HTTP connection ([WebReq]`web::WebReq` and [WebRes]`web::WebRes`) to a WebSocket connection.
-	** If 'flush' is 'true' (the default) then headers are flushed to the client, committing the response. 
-	** Set to 'false' to alter header / connection settings before doing a manual flush.
+	** If 'commit' is 'true' (default) then headers are flushed to the client, committing the response. 
+	** If 'false' then you must subsequently call 'WebRes.upgrade()'.
 	**  
 	** Server side usage only.
 	** 
 	** Throws 'IOErr' on handshake errors.
-	abstract TcpSocket upgrade(Obj webReq, Obj webRes, Bool flush := true)
+	abstract TcpSocket upgrade(Obj webReq, Obj webRes, Bool commit := true)
 	
 	** Enters a WebSocket read / event loop that blocks the current thread until the WebSocket is closed.
 	** 

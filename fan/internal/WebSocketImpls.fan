@@ -45,14 +45,14 @@ internal class WebSocketFan : WebSocket {
 		return ready(url, socket.in, socket.out)
 	}
 	
-	override TcpSocket upgrade(Obj webReq, Obj webRes, Bool flush := true) {
+	override TcpSocket upgrade(Obj webReq, Obj webRes, Bool commit := true) {
 		req := (WebReq) webReq
 		res := (WebRes) webRes
 		soc := wsProtocol.shakeHandsWithClient(req, res, allowedOrigins)
-		if (flush) {
-			res.headers["Content-Length"] = "0"
-			res.out.flush
-		}
+		if (commit)
+			res.upgrade(101)
+
+		// ready the socket while we can - because there's no public API access
 		ready(req.modRel, req.in, soc.out)
 		return soc
 	}
