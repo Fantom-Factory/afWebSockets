@@ -272,7 +272,7 @@ const class ChatboxRoutes {
     }
 
     WebSocket serviceWebSocket() {
-        WebSocket.create {
+        WebSocket() {
             ws := it
             onMessage = |MsgEvent me| {
                 webSockets.broadcast("${ws.id} says, '${me.txt}'")
@@ -284,7 +284,7 @@ const class ChatboxRoutes {
 @Js
 class ChatboxClient {
     Void main() {
-        webSock := WebSocket.create.open(`ws://localhost:8069/ws`)
+        webSock := WebSocket().open(`ws://localhost:8069/ws`)
         convBox := Text { text = "The conversation:\r\n"; multiLine = true; editable = false }
         textBox := Text { text = "Say something!" }
         sendMsg := |Event e| {
@@ -351,7 +351,7 @@ class Builder : BuildPod {
             "afConcurrent 1.0.20 - 1.0",
             "afBedSheet   1.5.10 - 1.5",
             "afDuvet      1.1.8  - 1.1",
-            "afWebSockets 0.1.0  - 0.1",
+            "afWebSockets 0.2.0  - 0.1",
         ]
 
         srcDirs = [`Chatbox.fan`]
