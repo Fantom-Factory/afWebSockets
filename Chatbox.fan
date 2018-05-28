@@ -48,7 +48,7 @@
         }
         
         WebSocket serviceWebSocket() {
-            WebSocket.make() {
+            WebSocket.create {
                 ws := it
                 onMessage = |MsgEvent me| { 
                     webSockets.broadcast("${ws.id} says, '${me.txt}'")
@@ -60,7 +60,7 @@
     @Js
     class ChatboxClient {
         Void main() {
-            webSock := WebSocket.make().open(`ws://localhost:8069/ws`)
+            webSock := WebSocket.create.open(`ws://localhost:8069/ws`)
             convBox := Text { text = "The conversation:\r\n"; multiLine = true; editable = false }
             textBox := Text { text = "Say something!" }
             sendMsg := |Event e| {

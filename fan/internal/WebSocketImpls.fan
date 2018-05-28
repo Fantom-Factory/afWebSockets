@@ -25,7 +25,7 @@ internal class WebSocketFan : WebSocket {
 		}
 	}
 
-	new make() {
+	new make() : super.makeDefault(null) {
 		this.id		 		= ("afWebSocket:" + nextId.getAndIncrement.toStr.padl(4, '0')).toUri
 		this.url			= ``
 		this.readyState		= ReadyState.connecting
@@ -119,7 +119,7 @@ internal class WebSocketJs : WebSocket {
 		}
 	}
 
-	new make() {
+	new make() : super.makeDefault(null) {
 		this.id		= `afWebSocket:null`
 		this.url	= ``
 	}
@@ -135,7 +135,7 @@ internal class WebSocketJs : WebSocket {
 	
 		   // FIXME JS -Send Binary
 		   override Void 		sendBinary(Buf data) { throw UnsupportedErr("TODO: Support binary messages in JS") }
-		   override TcpSocket	upgrade(Obj req, Obj res, Bool flush := true) { throw UnsupportedErr("Only server side WebSockets may be upgraded") }
+		   override Obj			upgrade(Obj req, Obj res, Bool flush := true) { throw UnsupportedErr("Only server side WebSockets may be upgraded") }
 		   override Void		read()		{ }
 	native 			Void		connect(Uri url, Str[]? protocols)
 	native override ReadyState	readyState()

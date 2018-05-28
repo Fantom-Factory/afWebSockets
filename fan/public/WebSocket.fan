@@ -1,6 +1,5 @@
 using web::WebReq
 using web::WebRes
-using inet::TcpSocket
 
 ** The main 'WebSocket' class as defined by the [W3C WebSocket API]`http://www.w3.org/TR/websockets/`. 
 ** 
@@ -109,13 +108,13 @@ abstract class WebSocket {
 	|CloseEvent|?	onClose
 
 	@NoDoc
-	protected new makeDefault() { }
+	protected new makeDefault(Obj? secretValue) { /* secretValue does nothing except help distinguish between the 2 ctors */ }
 	
 	** Creates a 'WebSocket' instance based the current runtime. (Fantom vs Javascript) 
 	** 
 	**   syntax: fantom
-	**   webSock := WebSocket()
-	static new make() {
+	**   webSock := WebSocket.create()
+	static new create() {
 		Env.cur.runtime == "js" ? WebSocketJs() : WebSocketFan()
 	}
 
@@ -131,10 +130,10 @@ abstract class WebSocket {
 	** If 'commit' is 'true' (default) then headers are flushed to the client, committing the response. 
 	** If 'false' then you must subsequently call 'WebRes.upgrade()'.
 	**  
-	** Server side usage only.
+	** Server side usage only. Returns 'TcpSocket'.
 	** 
 	** Throws 'IOErr' on handshake errors.
-	abstract TcpSocket upgrade(Obj webReq, Obj webRes, Bool commit := true)
+	abstract Obj upgrade(Obj webReq, Obj webRes, Bool commit := true)
 	
 	** Enters a WebSocket read / event loop that blocks the current thread until the WebSocket is closed.
 	** 

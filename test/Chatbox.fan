@@ -47,18 +47,12 @@ internal const class ChatboxRoutes {
 	}
 	
 	WebSocket serviceWebSocket() {
-		echo("serviceWebSocket")
-		ws := WebSocket.make() {
+		WebSocket.create {
 			ws := it
 			onMessage = |MsgEvent me| { 
 				webSockets.broadcast("${ws.id} says, '${me.txt}'")
 			}
 		}
-//		ws.upgrade(webReq, webRes)
-//		bigTxt := Buf.random(0xffff).toBase64
-//		echo("sending $bigTxt.size bytes")
-//		ws.sendText(bigTxt)
-		return ws
 	}
 	
 	private WebReq webReq() {
@@ -73,22 +67,30 @@ internal const class ChatboxRoutes {
 @Js
 internal class ChatboxClient {
 	Void main() {
-		webSock := WebSocket.make()
+		try {
+		echo("helo")
+		webSock := WebSocket.create
+		echo("helo3")
 		convBox := Text { text = "The conversation:\r\n"; multiLine = true; editable = false }
+		echo("s1")
 		textBox := Text { text = "Say somethingz!" }
+		echo("s2")
 		sendMsg := |Event e| {
 			webSock.sendText(textBox.text)
 			textBox.text = ""
 		}
+		echo("s3")
 		
 		convRef := Unsafe(convBox)
 
+		echo("s4")
 		webSock.onMessage = |MsgEvent msgEnv| {
 			Desktop.callAsync |->| {
 				conv := (Text) convRef.val
 				conv.text += "\r\n" + msgEnv.txt
 			}
 		}
+		echo("s5")
 
 		webSock.onClose = |CloseEvent ce| {
 			Desktop.callAsync |->| {
@@ -105,6 +107,7 @@ internal class ChatboxClient {
 		}
 
 		textBox.onAction.add(sendMsg)
+		echo("helo2")
 
 		window := Window {
 			title = "ChatBox - A WebSocket Demo"
@@ -139,8 +142,15 @@ internal class ChatboxClient {
 				}				
 			}
 		}
+		echo("helo3")
 		webSock.open(`ws://localhost:8069/ws`)
 
+		echo("helo4")
 		window.open
+		echo("helo5")
+			
+		} catch(Err e) {
+			e.trace
+		}
 	}
 }
