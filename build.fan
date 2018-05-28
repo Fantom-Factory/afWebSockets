@@ -7,7 +7,7 @@ class Build : BuildPod {
 	new make() {
 		podName = "afWebSockets"
 		summary = "A pure Fantom implementation of the W3C WebSocket API for use by clients and servers"
-		version = Version("0.1.1")
+		version = Version("0.2.0")
 
 		meta	= [	
 			"pod.dis"		: "WebSockets",

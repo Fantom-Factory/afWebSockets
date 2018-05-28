@@ -1,5 +1,7 @@
-Versions
-********
+v0.2.0
+======
+ - Chg: Updated to work with new Fantom 1.0.70 APIs.
+
 v0.1.0
 ======
  - Chg: Upgraded to be compatible with [BedSheet 1.5]`pod:afBedSheet` and [IoC 3]`pod:afIoc`.

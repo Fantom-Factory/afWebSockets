@@ -1,8 +1,9 @@
-#WebSockets v0.1.0
+#WebSockets v0.2.0
 ---
-[![Written in: Fantom](http://img.shields.io/badge/written%20in-Fantom-lightgray.svg)](http://fantom.org/)
-[![pod: v0.1.0](http://img.shields.io/badge/pod-v0.1.0-yellow.svg)](http://www.fantomfactory.org/pods/afWebSockets)
-![Licence: MIT](http://img.shields.io/badge/licence-MIT-blue.svg)
+
+[![Written in: Fantom](http://img.shields.io/badge/written%20in-Fantom-lightgray.svg)](http://fantom-lang.org/)
+[![pod: v0.2.0](http://img.shields.io/badge/pod-v0.2.0-yellow.svg)](http://eggbox.fantomfactory.org/pods/afWebSockets)
+[![Licence: ISC](http://img.shields.io/badge/licence-ISC-blue.svg)](https://choosealicense.com/licenses/isc/)
 
 ## Overview
 
@@ -14,17 +15,21 @@ WebSockets does not currently support frame fragmentation or continuations.
 
 ## Install
 
-Install `WebSockets` with the Fantom Repository Manager ( [fanr](http://fantom.org/doc/docFanr/Tool.html#install) ):
+Install `WebSockets` with the Fantom Pod Manager ( [FPM](http://eggbox.fantomfactory.org/pods/afFpm) ):
 
-    C:\> fanr install -r http://pods.fantomfactory.org/fanr/ afWebSockets
+    C:\> fpm install afWebSockets
 
-To use in a [Fantom](http://fantom.org/) project, add a dependency to `build.fan`:
+Or install `WebSockets` with [fanr](http://fantom.org/doc/docFanr/Tool.html#install):
 
-    depends = ["sys 1.0", ..., "afWebSockets 0.1"]
+    C:\> fanr install -r http://eggbox.fantomfactory.org/fanr/ afWebSockets
+
+To use in a [Fantom](http://fantom-lang.org/) project, add a dependency to `build.fan`:
+
+    depends = ["sys 1.0", ..., "afWebSockets 0.2"]
 
 ## Documentation
 
-Full API & fandocs are available on the [Fantom Pod Repository](http://pods.fantomfactory.org/pods/afWebSockets/).
+Full API & fandocs are available on the [Eggbox](http://eggbox.fantomfactory.org/pods/afWebSockets/) - the Fantom Pod Repository.
 
 ## Quick Start
 
@@ -34,145 +39,7 @@ It has a basic client that, using the same Fantom code, runs in a browser and as
 
 Due to the web client being Javascript compiled from Fantom code, Chatbox must first be compiled to a pod. All the interesting WebSocket code is in the `ChatboxRoutes` and `ChatboxClient` classes.
 
-1. Create a text file called `Chatbox.fan`
-
-        using afWebSockets
-        using afIoc
-        using afBedSheet
-        using afBedSheet::Text as BsText
-        using afConcurrent::Synchronized
-        using afDuvet::DuvetModule
-        using afDuvet::HtmlInjector
-        using concurrent::ActorPool
-        using fwt
-        using build::BuildPod
-        
-        class Main {
-            Void main(Str[] args) {
-                if (args.first == "-client")
-                    ChatboxClient().main
-                if (args.first == "-server")
-                    BedSheetBuilder(AppModule#.qname).addModulesFromPod("afWebSockets").startWisp(8069)
-                if (args.first == "-build")
-                    Builder().main
-            }
-        }
-        
-        const class AppModule {
-            @Contribute { serviceType=Routes# }
-            Void contributeRoutes(Configuration conf) {
-                conf.add(Route(`/`,     ChatboxRoutes#indexPage))
-                conf.add(Route(`/ws`,    ChatboxRoutes#serviceWebSocket))
-            }
-        }
-        
-        const class ChatboxRoutes {
-            @Inject private const WebSockets    webSockets
-            @Inject private const HtmlInjector    htmlInjector
-        
-            new make(|This|in) { in(this) }
-        
-            BsText indexPage() {
-                htmlInjector.injectFantomMethod(ChatboxClient#main)
-                return BsText.fromHtml(
-                    "<!DOCTYPE html>
-                     <html>
-                     <head>
-                         <title>ChatBox - A WebSocket Demo</title>
-                     </head>
-                     <body>
-                     </body>
-                     </html>")
-            }
-        
-            WebSocket serviceWebSocket() {
-                WebSocket.make() {
-                    ws := it
-                    onMessage = |MsgEvent me| {
-                        webSockets.broadcast("${ws.id} says, '${me.txt}'")
-                    }
-                }
-            }
-        }
-        
-        @Js
-        class ChatboxClient {
-            Void main() {
-                webSock := WebSocket.make().open(`ws://localhost:8069/ws`)
-                convBox := Text { text = "The conversation:\r\n"; multiLine = true; editable = false }
-                textBox := Text { text = "Say something!" }
-                sendMsg := |Event e| {
-                    webSock.sendText(textBox.text)
-                    textBox.text = ""
-                }
-        
-                webSock.onMessage = |MsgEvent msgEnv| {
-                    convBox.text += "\r\n" + msgEnv.txt
-                }
-        
-                textBox.onAction.add(sendMsg)
-        
-                window := Window {
-                    title = "ChatBox - A WebSocket Demo"
-                    InsetPane {
-                        EdgePane {
-                            center    = convBox
-                            bottom    = EdgePane {
-                                center    = textBox
-                                right    = Button { text = "Send"; onAction.add(sendMsg) }
-                            }
-                        },
-                    },
-                }
-        
-                // desktop only code
-                if (Env.cur.runtime != "js") {
-                    // ensure event funcs are run in the UI thread
-                    safeFunc := Unsafe(webSock.onMessage)
-                    webSock.onMessage = |MsgEvent msgEnv| {
-                        safeMess := Unsafe(msgEnv)
-                        Desktop.callAsync |->| { safeFunc.val->call(safeMess.val) }
-                    }
-        
-                    // call the blocking read() method in a background thread
-                    safeSock := Unsafe(webSock)
-                    Synchronized(ActorPool()).async |->| {
-                        safeSock.val->read
-                    }
-                }
-        
-                window.open
-            }
-        }
-        
-        class Builder : BuildPod {
-            new make() {
-                podName = "wsChatbox"
-                summary = "A WebSocket Demo"
-        
-                meta = [
-                    "proj.name"    : "ChatBox - A WebSocket Demo",
-                    "afIoc.module" : "wsChatbox::AppModule",
-                ]
-        
-                depends = [
-                    "sys          1.0.68 - 1.0",
-                    "fwt          1.0.68 - 1.0",
-                    "web          1.0.68 - 1.0",
-                    "build        1.0.68 - 1.0",
-                    "concurrent   1.0.68 - 1.0",
-                    "afIoc        3.0.0  - 3.0",
-                    "afConcurrent 1.0.0  - 1.0",
-                    "afBedSheet   1.5.0  - 1.5",
-                    "afDuvet      1.1.0  - 1.1",
-                    "afWebSockets 0.1.0  - 0.1",
-                ]
-        
-                srcDirs = [`Chatbox.fan`]
-            }
-        }
-
-
+1. Create a text file called `Chatbox.fan` containing the [Chatbox code](#chatbox).
 2. Compile the script to create a `wsChatbox` pod, the warnings are expected and may be ignored.
 
         C:\> fan Chatbox.fan -build
@@ -218,7 +85,7 @@ Due to the web client being Javascript compiled from Fantom code, Chatbox must f
 
 4. Visit `http://localhost:8069/` to load a Chatbox web client:
 
-  ![Chatbox Web Client](http://pods.fantomfactory.org/pods/afWebSockets/doc/chatbox-webClient.png)
+  ![Chatbox Web Client](http://eggbox.fantomfactory.org/pods/afWebSockets/doc/chatbox-webClient.png)
 
 
 
@@ -230,7 +97,7 @@ Due to the web client being Javascript compiled from Fantom code, Chatbox must f
 
 
 
-  ![Chatbox Desktop Client](http://pods.fantomfactory.org/pods/afWebSockets/doc/chatbox-desktopClient.png)
+  ![Chatbox Desktop Client](http://eggbox.fantomfactory.org/pods/afWebSockets/doc/chatbox-desktopClient.png)
 
 
 
@@ -238,12 +105,12 @@ Messages are sent to the server, which then broadcasts it back out all connected
 
 ## Usage
 
-The [WebSocket](http://pods.fantomfactory.org/pods/afWebSockets/api/WebSocket) class adheres to the [W3C WebSocket API](http://www.w3.org/TR/websockets/) and may be used as a client, or on the server, and even from Javascript. It has hooks that allow you to respond to various WebSocket events:
+The [WebSocket](http://eggbox.fantomfactory.org/pods/afWebSockets/api/WebSocket) class adheres to the [W3C WebSocket API](http://www.w3.org/TR/websockets/) and may be used as a client, or on the server, and even from Javascript. It has hooks that allow you to respond to various WebSocket events:
 
-- [onOpen](http://pods.fantomfactory.org/pods/afWebSockets/api/WebSocket.onOpen)
-- [onMessage](http://pods.fantomfactory.org/pods/afWebSockets/api/WebSocket.onMessage)
-- [onError](http://pods.fantomfactory.org/pods/afWebSockets/api/WebSocket.onError)
-- [onClose](http://pods.fantomfactory.org/pods/afWebSockets/api/WebSocket.onClose)
+- [onOpen](http://eggbox.fantomfactory.org/pods/afWebSockets/api/WebSocket.onOpen)
+- [onMessage](http://eggbox.fantomfactory.org/pods/afWebSockets/api/WebSocket.onMessage)
+- [onError](http://eggbox.fantomfactory.org/pods/afWebSockets/api/WebSocket.onError)
+- [onClose](http://eggbox.fantomfactory.org/pods/afWebSockets/api/WebSocket.onClose)
 
 ### Fantom Client
 
@@ -258,7 +125,7 @@ webSock.open(`ws:localhost:8069`)
 webSock.read
 ```
 
-Note that `WebSocket.read()` enters a read event loop that blocks the current thread / Actor until the WebSocket is closed. Therefore it may be advantageous to call the `read()` method in an asynchronous fashion. Alien-Factory's [Concurrent](http://pods.fantomfactory.org/pods/afConcurrent) library is the easiest way to do this:
+Note that `WebSocket.read()` enters a read event loop that blocks the current thread / Actor until the WebSocket is closed. Therefore it may be advantageous to call the `read()` method in an asynchronous fashion. Alien-Factory's [Concurrent](http://eggbox.fantomfactory.org/pods/afConcurrent) library is the easiest way to do this:
 
 ```
 using afConcurrent::Synchronized
@@ -346,6 +213,148 @@ const class WsWebMod : WebMod {
 
     override Void onStop() {
         webSockets.shutdown
+    }
+}
+```
+
+## Chatbox Code
+
+A fully working client and server instant messaging program for the web and desktop!
+
+```
+using afWebSockets
+using afIoc
+using afBedSheet
+using afBedSheet::Text as BsText
+using afConcurrent::Synchronized
+using afDuvet::DuvetModule
+using afDuvet::HtmlInjector
+using concurrent::ActorPool
+using fwt
+using build::BuildPod
+
+class Main {
+    Void main(Str[] args) {
+        if (args.first == "-client")
+            ChatboxClient().main
+        if (args.first == "-server")
+            BedSheetBuilder(AppModule#.qname).addModulesFromPod("afWebSockets").startWisp(8069)
+        if (args.first == "-build")
+            Builder().main
+    }
+}
+
+const class AppModule {
+    @Contribute { serviceType=Routes# }
+    Void contributeRoutes(Configuration conf) {
+        conf.add(Route(`/`,   ChatboxRoutes#indexPage))
+        conf.add(Route(`/ws`, ChatboxRoutes#serviceWebSocket))
+    }
+}
+
+const class ChatboxRoutes {
+    @Inject private const WebSockets    webSockets
+    @Inject private const HtmlInjector  htmlInjector
+
+    new make(|This|in) { in(this) }
+
+    BsText indexPage() {
+        htmlInjector.injectFantomMethod(ChatboxClient#main)
+        return BsText.fromHtml(
+            "<!DOCTYPE html>
+             <html>
+             <head>
+                 <title>ChatBox - A WebSocket Demo</title>
+             </head>
+             <body>
+             </body>
+             </html>")
+    }
+
+    WebSocket serviceWebSocket() {
+        WebSocket.create {
+            ws := it
+            onMessage = |MsgEvent me| {
+                webSockets.broadcast("${ws.id} says, '${me.txt}'")
+            }
+        }
+    }
+}
+
+@Js
+class ChatboxClient {
+    Void main() {
+        webSock := WebSocket.create.open(`ws://localhost:8069/ws`)
+        convBox := Text { text = "The conversation:\r\n"; multiLine = true; editable = false }
+        textBox := Text { text = "Say something!" }
+        sendMsg := |Event e| {
+            webSock.sendText(textBox.text)
+            textBox.text = ""
+        }
+
+        webSock.onMessage = |MsgEvent msgEnv| {
+            convBox.text += "\r\n" + msgEnv.txt
+        }
+
+        textBox.onAction.add(sendMsg)
+
+        window := Window {
+            title = "ChatBox - A WebSocket Demo"
+            InsetPane {
+                EdgePane {
+                    center    = convBox
+                    bottom    = EdgePane {
+                        center    = textBox
+                        right    = Button { text = "Send"; onAction.add(sendMsg) }
+                    }
+                },
+            },
+        }
+
+        // desktop only code
+        if (Env.cur.runtime != "js") {
+            // ensure event funcs are run in the UI thread
+            safeFunc := Unsafe(webSock.onMessage)
+            webSock.onMessage = |MsgEvent msgEnv| {
+                safeMess := Unsafe(msgEnv)
+                Desktop.callAsync |->| { safeFunc.val->call(safeMess.val) }
+            }
+
+            // call the blocking read() method in a background thread
+            safeSock := Unsafe(webSock)
+            Synchronized(ActorPool()).async |->| {
+                safeSock.val->read
+            }
+        }
+
+        window.open
+    }
+}
+
+class Builder : BuildPod {
+    new make() {
+        podName = "wsChatbox"
+        summary = "A WebSocket Demo"
+
+        meta = [
+            "proj.name"    : "ChatBox - A WebSocket Demo",
+            "afIoc.module" : "wsChatbox::AppModule",
+        ]
+
+        depends = [
+            "sys          1.0.70 - 1.0",
+            "fwt          1.0.70 - 1.0",
+            "web          1.0.70 - 1.0",
+            "build        1.0.70 - 1.0",
+            "concurrent   1.0.70 - 1.0",
+            "afIoc        3.0.6  - 3.0",
+            "afConcurrent 1.0.20 - 1.0",
+            "afBedSheet   1.5.10 - 1.5",
+            "afDuvet      1.1.8  - 1.1",
+            "afWebSockets 0.1.0  - 0.1",
+        ]
+
+        srcDirs = [`Chatbox.fan`]
     }
 }
 ```
