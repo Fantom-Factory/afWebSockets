@@ -1,5 +1,6 @@
 using web::WebReq
 using web::WebRes
+using inet::TcpSocket
 
 ** The main 'WebSocket' class as defined by the [W3C WebSocket API]`http://www.w3.org/TR/websockets/`. 
 ** 
@@ -69,7 +70,7 @@ abstract class WebSocket {
 	**   syntax: fantom
 	**   webSock := WebSocket()
 	**   webSock.allowedOrigins = ["http://localhost:8069", "http://example.*"]
-	Str[]? allowedOrigins
+	Str[]?			allowedOrigins
 	
 	** Hook for when the WebSocket is connected. 
 	** 
@@ -128,12 +129,12 @@ abstract class WebSocket {
 
 	** Upgrades the given HTTP connection ([WebReq]`web::WebReq` and [WebRes]`web::WebRes`) to a WebSocket connection.
 	** If 'flush' is 'true' (the default) then headers are flushed to the client, committing the response. 
-	** Set to 'false' to alter header / connection settings before doing a manually flush.
+	** Set to 'false' to alter header / connection settings before doing a manual flush.
 	**  
 	** Server side usage only.
 	** 
 	** Throws 'IOErr' on handshake errors.
-	abstract This upgrade(Obj webReq, Obj webRes, Bool flush := true)
+	abstract TcpSocket upgrade(Obj webReq, Obj webRes, Bool flush := true)
 	
 	** Enters a WebSocket read / event loop that blocks the current thread until the WebSocket is closed.
 	** 

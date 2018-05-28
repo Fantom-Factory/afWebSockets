@@ -10,22 +10,22 @@ class Build : BuildPod {
 		version = Version("0.1.1")
 
 		meta	= [	
-			"proj.name"		: "WebSockets",
+			"pod.dis"		: "WebSockets",
 			"afIoc.module"	: "afWebSockets::WebSocketsModule",
 			"repo.tags"		: "web",
 			"repo.public"	: "false"
 		]
 
 		depends = [
-			"sys          1.0.68 - 1.0", 
-			"concurrent   1.0.68 - 1.0",
-			"inet         1.0.68 - 1.0",
-			"web          1.0.68 - 1.0",
-			"afConcurrent 1.0.12 - 1.0",
+			"sys          1.0.70 - 1.0", 
+			"concurrent   1.0.70 - 1.0",
+			"inet         1.0.70 - 1.0",
+			"web          1.0.70 - 1.0",
+			"afConcurrent 1.0.20 - 1.0",
 			
 			// ---- for BedSheet only ----
-			"afIoc        3.0.0  - 3.0",
-			"afBedSheet   1.5.0  - 1.5",
+			"afIoc        3.0.6  - 3.0",
+			"afBedSheet   1.5.10 - 1.5",
 
 			// ---- for testing ----
 			"fwt          1.0",

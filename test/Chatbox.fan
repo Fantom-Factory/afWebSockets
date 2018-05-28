@@ -15,11 +15,11 @@ internal class Chatbox {
 		if (args.first == "-client")
 			ChatboxClient().main
 		else
-			BedSheetBuilder(AppModule#.qname).startWisp(8069)
+			BedSheetBuilder(AppModule#.qname).addModule(WebSocketsModule#).addModule(DuvetModule#).startWisp(8069, true)
 	}
 }
 
-internal class AppModule {
+internal const class AppModule {
 	@Contribute { serviceType=Routes# }
 	static Void contributeRoutes(Configuration conf) {
 		conf.add(Route(`/`, 	ChatboxRoutes#indexPage))
@@ -53,11 +53,11 @@ internal const class ChatboxRoutes {
 			onMessage = |MsgEvent me| { 
 				webSockets.broadcast("${ws.id} says, '${me.txt}'")
 			}
-		}.upgrade(webReq, webRes)
-//		bigTxt := Buf.random(160000).toBase64
-		bigTxt := Buf.random(0xffff).toBase64
-		echo("sending $bigTxt.size bytes")
-		ws.sendText(bigTxt)
+		}
+//		ws.upgrade(webReq, webRes)
+//		bigTxt := Buf.random(0xffff).toBase64
+//		echo("sending $bigTxt.size bytes")
+//		ws.sendText(bigTxt)
 		return ws
 	}
 	
@@ -80,17 +80,28 @@ internal class ChatboxClient {
 			webSock.sendText(textBox.text)
 			textBox.text = ""
 		}
+		
+		convRef := Unsafe(convBox)
 
 		webSock.onMessage = |MsgEvent msgEnv| {
-			convBox.text += "\r\n" + msgEnv.txt			
+			Desktop.callAsync |->| {
+				conv := (Text) convRef.val
+				conv.text += "\r\n" + msgEnv.txt
+			}
 		}
 
 		webSock.onClose = |CloseEvent ce| {
-			convBox.text += "\r\nClosed: $ce"			
+			Desktop.callAsync |->| {
+				conv := (Text) convRef.val
+				conv.text += "\r\nClosed: $ce"
+			}
 		}
 
 		webSock.onError = |Err err| {
-			convBox.text += "\r\nErr: $err"			
+			Desktop.callAsync |->| {
+				conv := (Text) convRef.val
+				conv.text += "\r\nErr: $err"
+			}
 		}
 
 		textBox.onAction.add(sendMsg)

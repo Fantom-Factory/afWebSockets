@@ -3,8 +3,8 @@ using web::WebRes
 using web::WebClient
 using concurrent::AtomicInt
 using concurrent::ActorPool
-using inet::TcpSocket
 using afConcurrent
+using inet::TcpSocket
 
 internal class WebSocketFan : WebSocket {
 	static const private AtomicInt	nextId		:= AtomicInt(1) 
@@ -39,23 +39,22 @@ internal class WebSocketFan : WebSocket {
 		httpUri := ("http" + url.toStr[2..-1]).toUri
 		c := WebClient(httpUri)
 
-		wsProtocol.shakeHandsWithServer(c, protocols)
-		
-		// TODO: pester Brian to make socket field public and @NoDoc'ed
-		socket := (TcpSocket) WebClient#.field("socket").get(c)
+		socket := wsProtocol.shakeHandsWithServer(c, protocols)
 
 		isClient = true
 		return ready(url, socket.in, socket.out)
 	}
 	
-	override This upgrade(Obj webReq, Obj webRes, Bool flush := true) {
+	override TcpSocket upgrade(Obj webReq, Obj webRes, Bool flush := true) {
 		req := (WebReq) webReq
 		res := (WebRes) webRes
-		wsProtocol.shakeHandsWithClient(req, res, allowedOrigins)
-		out := res.out
-		if (flush)
-			out.flush
-		return ready(req.modRel, req.in, out)
+		soc := wsProtocol.shakeHandsWithClient(req, res, allowedOrigins)
+		if (flush) {
+			res.headers["Content-Length"] = "0"
+			res.out.flush
+		}
+		ready(req.modRel, req.in, soc.out)
+		return soc
 	}
 
 	override Void close(Int? code := 1000, Str? reason := null) {
@@ -134,9 +133,9 @@ internal class WebSocketJs : WebSocket {
 		return this
 	}
 	
-		   // FIXME: JS -Send Binary
+		   // FIXME JS -Send Binary
 		   override Void 		sendBinary(Buf data) { throw UnsupportedErr("TODO: Support binary messages in JS") }
-		   override This 		upgrade(Obj req, Obj res, Bool flush := true) { throw UnsupportedErr("Only server side WebSockets may be upgraded") }
+		   override TcpSocket	upgrade(Obj req, Obj res, Bool flush := true) { throw UnsupportedErr("Only server side WebSockets may be upgraded") }
 		   override Void		read()		{ }
 	native 			Void		connect(Uri url, Str[]? protocols)
 	native override ReadyState	readyState()

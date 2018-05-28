@@ -2,6 +2,7 @@ using afConcurrent
 using concurrent
 using web::WebReq
 using web::WebRes
+using inet::TcpSocket
 
 ** (Service)
 ** The main service for handling 'WebSocket' connections.
@@ -20,10 +21,10 @@ const mixin WebSockets {
 	abstract Duration? socketReadTimeOut
 
 	** Hook to allow negotiation of websocket protocols and extensions.
-	** Called after the socket upgrade has been verified but before any response is flushed to the client.
+	** Called after the socket upgrade has been verified.
 	** 
 	** This field may be set at any time.
-	abstract |WebReq, WebRes, WebSocket|? onUpgrade
+	abstract |TcpSocket, WebSocket|? onUpgrade
 	
 	** Creates a 'WebSockets' instance. 
 	static new make(ActorPool actorPool, |This|? f := null) {
@@ -61,7 +62,7 @@ internal const class WebSocketsImpl : WebSockets {
 		set { readTimeOutRef.val = it	}
 	}
 
-	override |WebReq, WebRes, WebSocket|? onUpgrade {
+	override |TcpSocket, WebSocket|? onUpgrade {
 		get { onUpgradeRef.val 		}
 		set { onUpgradeRef.val = it	}		
 	}
@@ -78,8 +79,9 @@ internal const class WebSocketsImpl : WebSockets {
 
 		// the socket may have been manually upgraded before being passed to us
 		if (webSocket.readyState == ReadyState.connecting) {
+			socket := null as TcpSocket
 			try {
-				webSocket.upgrade(req, res, false)
+				socket = webSocket.upgrade(req, res, false)
 				
 			} catch (IOErr wsErr) {
 				log.warn(wsErr.msg)
@@ -88,14 +90,23 @@ internal const class WebSocketsImpl : WebSockets {
 				return
 			}
 
+			socket.options.receiveTimeout = socketReadTimeOut
+
 			// allow others to mess with the connection
 			// they may want to add protocols and extensions
-			onUpgrade?.call(req, res, webSocket)
+			if (onUpgrade != null)
+				onUpgrade.call(socket, webSocket)
+
+			// we can't flush until we've set a content-length
+			// any value other than 0 should be invalid, but anyway...
+			if (!res.headers.containsKey("Content-Length"))
+				res.headers["Content-Length"] = "0"
+			
+			// call 'res.out()' to force the response headers to be written and commit the response
+			res.out.flush
 		}
 
 		// connection established
-		req.socketOptions.receiveTimeout = socketReadTimeOut
-		res.out.flush			
 
 		unsafeWs := Unsafe(webSocket)
 		try {

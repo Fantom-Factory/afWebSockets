@@ -13,7 +13,7 @@ internal class WsReqTestImpl : WebReq {
 	override WebSession		session		() { (Obj) -1 }
 	override InStream		in			:= buf.in
 	override SocketOptions	socketOptions() { TcpSocket().options }
-	override TcpSocket 		socket()	{ throw Err() } 
+	override TcpSocket 		socket()	{ TcpSocket() } 
 	
 	new make() { 
 		headers["Host"] 					= "localhost:8070" 
@@ -33,6 +33,7 @@ internal class WsResTestImpl : WebRes {
 	override WebOutStream	out			:= WebOutStream(buf.out)
 	override Bool 			isDone		:= false
 		
+	override TcpSocket upgrade(Int statusCode := 101) { this.statusCode = statusCode; return TcpSocket() }
 	override Void redirect(Uri uri, Int statusCode := 303) { }
 	override Void sendErr(Int statusCode, Str? msg := null) { }
 	override Void done() {}	

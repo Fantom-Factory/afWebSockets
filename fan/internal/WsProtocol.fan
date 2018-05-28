@@ -1,12 +1,50 @@
 using web::WebReq
 using web::WebRes
 using web::WebClient
+using inet::TcpSocket
 
 internal const class WsProtocol {
 	private static const Log 		log 		:= WsProtocol#.pod.log
 	private static const Version	httpVer11	:= Version("1.1")
 
-	Bool shakeHandsWithClient(WebReq req, WebRes res, Str[]? allowedOrigins) {
+	TcpSocket shakeHandsWithServer(WebClient c, Str[]? protocols) {
+		key := Buf.random(16).toBase64
+		c.reqMethod								= "GET"
+		c.reqHeaders["Upgrade"]					= "websocket"
+		c.reqHeaders["Connection"]				= "Upgrade"
+		c.reqHeaders["Sec-WebSocket-Key"]		= key
+		c.reqHeaders["Sec-WebSocket-Version"]	= 13.toStr
+		if (protocols != null)
+			c.reqHeaders["Sec-WebSocket-Protocol"]	= protocols.join(", ")
+
+		c.writeReq
+		c.readRes
+		
+		if (c.resCode != 101)
+			throw IOErr(WsErrMsgs.handshakeBadResponseCode(c.resCode, c.resPhrase))
+
+		"Connection Upgrade Sec-WebSocket-Accept".split.each {
+			if (!c.resHeaders.containsKey(it))
+				throw IOErr(WsErrMsgs.handshakeHeaderNotFound(it, c.resHeaders))
+		}
+		
+		if (!c.resHeaders["Connection"].lower.split(',').contains("upgrade"))
+			throw IOErr(WsErrMsgs.handshakeWrongHeaderValue("Connection", "Upgrade", c.resHeaders["Connection"]))
+
+		if (!c.resHeaders["Upgrade"].equalsIgnoreCase("websocket"))
+			throw IOErr(WsErrMsgs.handshakeWrongHeaderValue("Upgrade", "websocket", c.resHeaders["Upgrade"]))
+
+		digest		:= c.resHeaders["Sec-WebSocket-Accept"]
+		secDigest	:= Buf().print(key).print("258EAFA5-E914-47DA-95CA-C5AB0DC85B11").toDigest("SHA-1").toBase64
+		if (secDigest != digest)
+			throw IOErr(WsErrMsgs.handshakeBadAcceptCode)
+		
+		// TODO pester Brian to make socket field public and @NoDoc'ed
+		socket := (TcpSocket) WebClient#.field("socket").get(c)
+		return socket
+	}
+	
+	TcpSocket shakeHandsWithClient(WebReq req, WebRes res, Str[]? allowedOrigins) {
 		if (req.version < httpVer11)
 			throw IOErr(WsErrMsgs.handshakeWrongHttpVersion(req.version))
 		
@@ -43,43 +81,11 @@ internal const class WsProtocol {
 		
 		res.headers["Upgrade"] 				= "websocket"
 		res.headers["Connection"] 			= "Upgrade"
-		res.headers["Sec-WebSocket-Accept"]	= resKey		
+		res.headers["Sec-WebSocket-Accept"]	= resKey
 		res.statusCode = 101
+		return req.socket
 		
-		return true
-	}
-	
-	Void shakeHandsWithServer(WebClient c, Str[]? protocols) {
-		key := Buf.random(16).toBase64
-		c.reqMethod								= "GET"
-		c.reqHeaders["Upgrade"]					= "websocket"
-		c.reqHeaders["Connection"]				= "Upgrade"
-		c.reqHeaders["Sec-WebSocket-Key"]		= key
-		c.reqHeaders["Sec-WebSocket-Version"]	= 13.toStr
-		if (protocols != null)
-			c.reqHeaders["Sec-WebSocket-Protocol"]	= protocols.join(", ")
-
-		c.writeReq
-		c.readRes
-		
-		if (c.resCode != 101)
-			throw IOErr(WsErrMsgs.handshakeBadResponseCode(c.resCode, c.resPhrase))
-
-		"Connection Upgrade Sec-WebSocket-Accept".split.each {
-			if (!c.resHeaders.containsKey(it))
-				throw IOErr(WsErrMsgs.handshakeHeaderNotFound(it, c.resHeaders))
-		}
-		
-		if (!c.resHeaders["Connection"].lower.split(',').contains("upgrade"))
-			throw IOErr(WsErrMsgs.handshakeWrongHeaderValue("Connection", "Upgrade", c.resHeaders["Connection"]))
-
-		if (!c.resHeaders["Upgrade"].equalsIgnoreCase("websocket"))
-			throw IOErr(WsErrMsgs.handshakeWrongHeaderValue("Upgrade", "websocket", c.resHeaders["Upgrade"]))
-
-		digest		:= c.resHeaders["Sec-WebSocket-Accept"]
-		secDigest	:= Buf().print(key).print("258EAFA5-E914-47DA-95CA-C5AB0DC85B11").toDigest("SHA-1").toBase64
-		if (secDigest != digest)
-			throw IOErr(WsErrMsgs.handshakeBadAcceptCode)
+//		return res.upgrade(101)
 	}
 	
 	Void process(WebSocketFan webSocket) {
